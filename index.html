@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Industry Lumber Idle</title>
+    <title>Industry Timber</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Three.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
     <style>
         :root {
             --ui-bg: #0f172a;
             --panel-bg: #1e293b;
-            --accent: #10b981;
         }
 
         * {
@@ -26,9 +33,7 @@
             overflow: hidden;
         }
 
-        .pixel-font {
-            font-family: 'Press Start 2P', cursive;
-        }
+        .pixel-font { font-family: 'Press Start 2P', cursive; }
 
         .panel {
             background-color: var(--panel-bg);
@@ -46,8 +51,8 @@
         }
 
         .btn-upgrade {
-            min-height: 52px;
-            transition: all 0.1s;
+            min-height: 48px;
+            transition: all 0.1s ease-in-out;
         }
         .btn-upgrade:active:not(:disabled) {
             transform: scale(0.97);
@@ -59,157 +64,35 @@
             cursor: not-allowed;
         }
 
-        /* Isometric Grid System */
-        .iso-container {
-            perspective: 1000px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: radial-gradient(circle, #334155 0%, var(--ui-bg) 75%);
-        }
-
-        .iso-grid {
-            transform: rotateX(60deg) rotateZ(-45deg) scale(0.75);
-            transform-style: preserve-3d;
-            display: grid;
-            grid-template-columns: repeat(3, 140px);
-            grid-template-rows: repeat(3, 140px);
-            gap: 16px;
-        }
-
-        @media (min-width: 640px) {
-            .iso-grid {
-                transform: rotateX(60deg) rotateZ(-45deg) scale(0.9);
-                gap: 20px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .iso-grid {
-                transform: rotateX(60deg) rotateZ(-45deg) scale(1);
-            }
-        }
-
-        /* Isometric Building Blocks */
-        .iso-block {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #475569;
-            transform-style: preserve-3d;
-            border: 2px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-
-        .iso-block::before {
-            content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 18px;
-            background: rgba(0,0,0,0.45); transform: rotateX(-90deg); transform-origin: top;
-            border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;
-        }
-        .iso-block::after {
-            content: ''; position: absolute; top: 0; left: 100%; width: 18px; height: 100%;
-            background: rgba(0,0,0,0.25); transform: rotateY(90deg); transform-origin: left;
-            border-top-right-radius: 4px; border-bottom-right-radius: 4px;
-        }
-
-        /* Building Backgrounds */
-        .bg-forest { background-color: #065f46; }
-        .bg-logging { background-color: #047857; }
-        .bg-transport { background-color: #374151; }
-        .bg-sawmill { background-color: #b45309; }
-        .bg-drying { background-color: #9a3412; }
-        .bg-furniture { background-color: #7c2d12; }
-        .bg-dock { background-color: #1d4ed8; }
-        
-        .locked-building {
-            opacity: 0.25;
-            background-color: #1e293b;
-        }
-
-        .iso-content {
+        /* 3D Floating Labels */
+        .building-label {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            transform: translate(-50%, -50%);
             pointer-events: none;
-            width: 100%;
-            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-shadow: 1px 1px 0 #000;
+            transition: opacity 0.2s;
+            z-index: 10;
         }
 
-        /* CSS Animations */
-        @keyframes sway {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(6deg); }
-        }
-
-        @keyframes chop {
-            0%, 100% { transform: rotate(0deg); }
-            40% { transform: rotate(-50deg); }
-            50% { transform: rotate(10deg); }
-        }
-
-        @keyframes spin-saw {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes smoke-float {
-            0% { opacity: 0.8; transform: translateY(0) scale(0.6); }
-            100% { opacity: 0; transform: translateY(-35px) scale(1.5); }
-        }
-
-        @keyframes boat-bob {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-5px) rotate(1.5deg); }
-        }
-
-        @keyframes belt-flow {
-            0% { stroke-dashoffset: 0; }
-            100% { stroke-dashoffset: -20; }
-        }
-
-        @keyframes spark-pop {
-            0%, 100% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        @keyframes hammer-work {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(-35deg); }
-        }
-
+        /* Floating Cash Animation */
         @keyframes float-cash-anim {
-            0% { opacity: 1; transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg) translateY(0); }
-            100% { opacity: 0; transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg) translateY(-85px); }
+            0% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -60px); }
         }
-
-        .anim-tree { animation: sway 3s infinite ease-in-out; transform-origin: bottom center; }
-        .anim-axe { animation: chop 1.4s infinite ease-in-out; transform-origin: bottom right; }
-        .anim-sawblade { animation: spin-saw 0.6s infinite linear; transform-origin: center; }
-        .anim-smoke1 { animation: smoke-float 2.2s infinite linear; }
-        .anim-smoke2 { animation: smoke-float 2.2s infinite linear 1.1s; }
-        .anim-boat { animation: boat-bob 3s infinite ease-in-out; }
-        .anim-belt { stroke-dasharray: 6 4; animation: belt-flow 0.8s infinite linear; }
-        .anim-spark { animation: spark-pop 0.5s infinite ease-in-out; }
-        .anim-hammer { animation: hammer-work 1.2s infinite ease-in-out; transform-origin: bottom right; }
-
         .float-cash {
             position: absolute;
-            top: 50%; left: 50%;
             color: #4ade80;
             font-size: 1.4rem;
-            font-weight: 800;
+            font-weight: 900;
             text-shadow: 2px 2px 0 #000;
-            animation: float-cash-anim 1s forwards;
+            animation: float-cash-anim 1s forwards ease-out;
             pointer-events: none;
             z-index: 50;
         }
@@ -232,11 +115,20 @@
             padding: 20px;
             overflow-y: auto;
         }
+
         .how-to-play {
             background: rgba(0,0,0,0.5); border: 1px solid #334155;
             padding: 16px; border-radius: 10px; text-align: left;
             margin: 16px 0; max-width: 520px; font-size: 0.875rem;
             line-height: 1.6; color: #cbd5e1;
+        }
+
+        .camera-hint {
+            animation: pulse-hint 3s infinite;
+        }
+        @keyframes pulse-hint {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
@@ -262,7 +154,7 @@
 
     <!-- Reward Success Popup Modal -->
     <div id="reward-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-[1010] flex items-center justify-center p-4">
-        <div class="panel p-6 max-w-sm w-full text-center border-emerald-500 animate-bounce-once">
+        <div class="panel p-6 max-w-sm w-full text-center border-emerald-500">
             <div class="text-5xl mb-2">🎉</div>
             <h2 class="text-xl font-extrabold text-emerald-400 mb-2" data-i18n="redeemSuccessTitle">Congratulations!</h2>
             <p class="text-sm text-slate-200 mb-5 leading-relaxed" id="reward-message" data-i18n="redeemSuccessMsg">You received $5,000 cash reward!</p>
@@ -282,51 +174,22 @@
         </div>
     </div>
 
-    <!-- New Game Confirm Modal -->
-    <div id="new-game-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
-        <div class="panel p-6 max-w-sm w-full text-center border-amber-600">
-            <h2 class="text-xl font-bold text-amber-400 mb-3" data-i18n="newGameConfirmTitle">Start New Game?</h2>
-            <p class="text-slate-300 mb-6 text-sm" data-i18n="newGameConfirmText">All saved progress will be erased. Are you sure?</p>
-            <div class="flex gap-3 justify-center">
-                <button onclick="document.getElementById('new-game-modal').classList.add('hidden')" class="btn-touch bg-slate-700 hover:bg-slate-600 px-5 py-2.5 rounded-lg font-bold flex-1" data-i18n="cancelBtn">Cancel</button>
-                <button onclick="confirmNewGame()" class="btn-touch bg-amber-600 hover:bg-amber-500 px-5 py-2.5 rounded-lg font-bold text-white flex-1" data-i18n="newGameBtn">New Game</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Offline Earnings Modal -->
-    <div id="offline-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
-        <div class="panel p-6 max-w-sm w-full text-center border-emerald-600 border-2">
-            <h2 class="text-xl font-bold text-emerald-400 mb-2" data-i18n="offlineTitle">Offline Earnings</h2>
-            <div class="bg-black/50 p-4 rounded-lg mb-6 text-sm text-slate-300">
-                <div class="flex justify-between mb-2">
-                    <span data-i18n="offlineTime">Time Away:</span>
-                    <span id="offline-time" class="font-mono text-white font-bold">0s</span>
-                </div>
-                <div class="flex justify-between border-t border-slate-700 pt-2 mt-2">
-                    <span data-i18n="offlineEarned">Earned (50%):</span>
-                    <span id="offline-earned" class="font-mono text-emerald-400 font-bold">+$0</span>
-                </div>
-            </div>
-            <button onclick="collectOfflineEarnings()" class="btn-touch bg-emerald-600 hover:bg-emerald-500 w-full py-3.5 rounded-lg font-bold text-white shadow-lg" data-i18n="offlineBtn">Collect</button>
-        </div>
-    </div>
-
     <!-- Start Screen -->
     <div id="start-screen">
-        <h1 class="pixel-font text-2xl lg:text-4xl text-emerald-400 mb-3" data-i18n="title">TIMBER CORP IDLE</h1>
+        <h1 class="pixel-font text-2xl lg:text-4xl text-emerald-400 mb-3" data-i18n="title">TIMBER CORP 3D</h1>
         <p class="max-w-xl text-slate-300 mb-2 text-sm md:text-base px-2" data-i18n="lore">Grow from a small logging camp into a global timber empire! Manage your supply chain from harvesting, transporting, processing, to exporting.</p>
         <div class="how-to-play" data-i18n="howToPlay">
-            How to Play:<br>1. Collect passive income from your automated export line.<br>2. Upgrade 'Logging' and 'Transport' to feed your sawmills.<br>3. 'Research' new tech to unlock high-value products.<br>4. Expand to global 'Export' markets for huge income multipliers.
+            How to Play:<br>1. Collect passive income from your automated export line.<br>2. Upgrade 'Logging' and 'Transport' to feed your sawmills.<br>3. 'Research' new tech to unlock high-value products.<br>4. Expand to global 'Export' markets for huge income multipliers.<br><br>💡 Drag on the game screen to rotate the 3D camera!
         </div>
         <div id="start-buttons" class="w-full max-w-md flex justify-center mt-2 px-2">
-            <!-- Dynamically populated buttons -->
+            <button onclick="startGame()" class="btn-touch w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg text-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all" data-i18n="startBtn">
+                START GAME
+            </button>
         </div>
     </div>
 
     <!-- Top Dashboard Header -->
     <header class="bg-slate-900 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center px-4 py-2 sm:py-3 shadow-md z-30 gap-2 shrink-0">
-        <!-- Brand & Settings Dropdown -->
         <div class="flex items-center justify-between w-full sm:w-auto gap-2">
             <div class="flex items-center gap-2">
                 <h1 class="pixel-font text-xs sm:text-base text-emerald-400 whitespace-nowrap">TIMBER CORP</h1>
@@ -334,15 +197,12 @@
             </div>
 
             <div class="flex items-center gap-2 relative">
-                <!-- Dropdown Menu Trigger -->
                 <button onclick="toggleDropdown(event)" class="btn-touch h-9 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3 text-xs rounded-lg border border-slate-600 flex items-center gap-1.5 shadow">
                     <span>⚙️</span> <span data-i18n="menuBtn">Menu</span> <span>▼</span>
                 </button>
 
-                <!-- Language Toggle -->
                 <button onclick="toggleLang()" class="btn-touch h-9 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 text-xs rounded-lg border border-slate-600" id="lang-toggle">EN</button>
 
-                <!-- Hidden Settings Dropdown Menu -->
                 <div id="settings-dropdown" class="hidden absolute right-0 top-11 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 divide-y divide-slate-700/60">
                     <button onclick="triggerSaveFromMenu()" class="w-full text-left px-4 py-3 text-xs font-semibold text-slate-200 hover:bg-slate-700/80 flex items-center gap-2.5">
                         <span>💾</span> <span data-i18n="menuSave">Save Game</span>
@@ -357,7 +217,6 @@
             </div>
         </div>
 
-        <!-- Currencies & Income Stats -->
         <div class="flex w-full sm:w-auto justify-between sm:justify-end gap-2 items-center text-xs">
             <div class="text-left sm:text-right bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 flex-1 sm:flex-initial">
                 <div class="text-[10px] text-slate-400 leading-none" data-i18n="rev">Revenue / Sec</div>
@@ -382,131 +241,22 @@
         </div>
     </header>
 
-    <!-- Main Game View (Animated Isometric Area) -->
-    <main class="flex-1 relative overflow-hidden min-h-[240px]" onclick="closeDropdownIfOpen()">
-        <!-- Floating Production Chain Status -->
-        <div class="absolute top-2 left-2 z-10 panel p-2 bg-slate-900/90 backdrop-blur max-w-[200px] border-slate-700">
+    <!-- Main Game View (3D Canvas Area) -->
+    <main class="flex-1 relative overflow-hidden bg-slate-900" id="game-main" onclick="closeDropdownIfOpen()">
+        <div id="three-container" class="absolute inset-0 z-0 cursor-move" style="width: 100%; height: 100%;"></div>
+        <div id="labels-container" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
+
+        <div class="camera-hint absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none z-10 text-white/50 text-xs font-bold bg-black/30 px-3 py-1.5 rounded-full flex items-center gap-2">
+            <span>🔄</span> Drag to rotate camera
+        </div>
+
+        <div class="absolute top-2 left-2 z-20 panel p-2 bg-slate-900/90 backdrop-blur max-w-[200px] border-slate-700 pointer-events-auto">
             <h3 class="text-[10px] font-bold text-slate-300 border-b border-slate-700 pb-1 mb-1" data-i18n="prodChain">Production Chain</h3>
             <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                 <span class="text-slate-400" data-i18n="raw">Raw Wood:</span> <span class="text-right text-emerald-400 font-mono" id="stat-raw">0/s</span>
                 <span class="text-slate-400" data-i18n="lumber">Lumber:</span> <span class="text-right text-amber-400 font-mono" id="stat-lumber">0/s</span>
-                <span class="text-slate-400" data-i18n="dry">Dry Lumber:</span> <span class="text-right text-orange-400 font-mono" id="stat-dry">0/s</span>
-                <span class="text-slate-400" data-i18n="furn">Furniture:</span> <span class="text-right text-yellow-400 font-mono" id="stat-furniture">0/s</span>
-            </div>
-        </div>
-
-        <div class="iso-container" id="iso-world">
-            <div class="iso-grid">
-                <!-- Row 1: Forest / Logging / Furniture -->
-                <div class="iso-block bg-forest" id="bldg-forest">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <g class="anim-tree">
-                                <polygon points="20,44 10,44 15,32 12,32 17,20 14,20 20,10 26,20 23,20 28,32 25,32 30,44" fill="#047857"/>
-                                <rect x="18" y="44" width="4" height="8" fill="#78350f"/>
-                            </g>
-                            <g class="anim-tree" style="animation-delay: 0.5s;">
-                                <polygon points="44,48 34,48 39,36 36,36 41,24 38,24 44,14 50,24 47,24 52,36 49,36 54,48" fill="#10b981"/>
-                                <rect x="42" y="48" width="4" height="8" fill="#78350f"/>
-                            </g>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-emerald-200" data-i18n="b_forest">Forest</div>
-                    </div>
-                </div>
-
-                <div class="iso-block bg-logging" id="bldg-logging">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <circle cx="32" cy="22" r="6" fill="#fde047"/>
-                            <rect x="28" y="28" width="8" height="14" rx="2" fill="#ef4444"/>
-                            <g class="anim-axe">
-                                <rect x="34" y="28" width="16" height="4" rx="1" fill="#78350f"/>
-                                <polygon points="48,24 54,28 48,32" fill="#94a3b8"/>
-                            </g>
-                            <rect x="16" y="46" width="32" height="8" rx="3" fill="#b45309"/>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-emerald-200" data-i18n="b_logging">Logging</div>
-                    </div>
-                </div>
-
-                <div class="iso-block bg-furniture locked-building" id="bldg-furniture">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <rect x="12" y="38" width="40" height="6" fill="#475569"/>
-                            <path d="M 22 38 L 22 24 L 32 24 L 32 38 M 22 30 L 32 30" stroke="#f59e0b" stroke-width="3" fill="none"/>
-                            <g class="anim-hammer">
-                                <rect x="36" y="12" width="6" height="16" fill="#94a3b8"/>
-                                <rect x="32" y="10" width="14" height="6" rx="1" fill="#ef4444"/>
-                            </g>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-300" data-i18n="b_factory">Factory</div>
-                    </div>
-                </div>
-
-                <!-- Row 2: Empty / Transport / Drying -->
-                <div style="visibility: hidden;"></div>
-
-                <div class="iso-block bg-transport" id="bldg-transport">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <line x1="8" y1="46" x2="56" y2="46" stroke="#94a3b8" stroke-width="4" class="anim-belt"/>
-                            <g>
-                                <rect x="16" y="24" width="22" height="16" fill="#3b82f6"/>
-                                <rect x="38" y="28" width="10" height="12" fill="#60a5fa"/>
-                                <circle cx="22" cy="42" r="4" fill="#1e293b"/>
-                                <circle cx="42" cy="42" r="4" fill="#1e293b"/>
-                                <rect x="18" y="18" width="18" height="5" rx="2" fill="#b45309"/>
-                            </g>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-200" data-i18n="b_transport">Transport</div>
-                    </div>
-                </div>
-
-                <div class="iso-block bg-drying locked-building" id="bldg-drying">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <rect x="22" y="24" width="8" height="22" fill="#475569"/>
-                            <rect x="38" y="20" width="8" height="26" fill="#334155"/>
-                            <rect x="14" y="34" width="36" height="18" fill="#ea580c"/>
-                            <circle cx="26" cy="18" r="4" fill="#cbd5e1" class="anim-smoke1"/>
-                            <circle cx="42" cy="14" r="5" fill="#e2e8f0" class="anim-smoke2"/>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-300" data-i18n="b_drying">Drying</div>
-                    </div>
-                </div>
-
-                <!-- Row 3: Empty / Dock / Sawmill -->
-                <div style="visibility: hidden;"></div>
-
-                <div class="iso-block bg-dock relative" id="bldg-dock">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <path d="M 4 48 Q 16 44 28 48 T 52 48" stroke="#60a5fa" stroke-width="2" fill="none"/>
-                            <g class="anim-boat">
-                                <path d="M 12 34 L 52 34 L 44 46 L 20 46 Z" fill="#1e3a8a"/>
-                                <rect x="20" y="22" width="14" height="12" fill="#f8fafc"/>
-                                <rect x="34" y="24" width="10" height="10" fill="#10b981"/>
-                            </g>
-                            <circle cx="48" cy="16" r="3" fill="#fbbf24" class="anim-spark"/>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-blue-200" data-i18n="b_export">Export</div>
-                    </div>
-                </div>
-
-                <div class="iso-block bg-sawmill" id="bldg-sawmill">
-                    <div class="iso-content">
-                        <svg class="w-16 h-16" viewBox="0 0 64 64">
-                            <rect x="12" y="30" width="40" height="20" fill="#b45309"/>
-                            <g class="anim-sawblade" style="transform-origin: 32px 30px;">
-                                <circle cx="32" cy="30" r="10" fill="#94a3b8"/>
-                                <line x1="22" y1="30" x2="42" y2="30" stroke="#f8fafc" stroke-width="2"/>
-                                <line x1="32" y1="20" x2="32" y2="40" stroke="#f8fafc" stroke-width="2"/>
-                            </g>
-                            <circle cx="40" cy="24" r="2" fill="#f59e0b" class="anim-spark"/>
-                        </svg>
-                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-amber-200" data-i18n="b_sawmill">Sawmill</div>
-                    </div>
-                </div>
+                <span class="text-slate-400" data-i18n="dry">Goods:</span> <span class="text-right text-orange-400 font-mono" id="stat-dry">0/s</span>
+                <span class="text-slate-400" data-i18n="furn">Sales:</span> <span class="text-right text-yellow-400 font-mono" id="stat-furniture">0/s</span>
             </div>
         </div>
     </main>
@@ -575,14 +325,14 @@
                     </button>
                 </div>
                 
-                <!-- Drying Plant -->
+                <!-- Factory -->
                 <div class="panel p-3.5 flex flex-col justify-between opacity-50" id="card-drying">
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
-                            <h4 class="font-bold text-orange-500 text-sm" data-i18n="u_dry_title">♨️ Drying Kilns</h4>
+                            <h4 class="font-bold text-orange-500 text-sm" data-i18n="u_dry_title">🏭 Factory</h4>
                             <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-drying">0</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_dry_desc">Converts Lumber to Dry Lumber (x4 Value).</p>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_dry_desc">Converts Lumber to Goods (x4 Value).</p>
                         <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
                             <span data-i18n="speed">Speed:</span> <span id="eff-drying" class="text-white font-mono font-bold">0</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-drying">1</span>/s</span>
                         </div>
@@ -592,14 +342,14 @@
                     </button>
                 </div>
 
-                <!-- Furniture Factory -->
+                <!-- Supermarket -->
                 <div class="panel p-3.5 flex flex-col justify-between opacity-50" id="card-furniture">
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
-                            <h4 class="font-bold text-yellow-500 text-sm" data-i18n="u_furn_title">🪑 Assembly Line</h4>
+                            <h4 class="font-bold text-yellow-500 text-sm" data-i18n="u_furn_title">🏪 Supermarket</h4>
                             <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-furniture">0</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_furn_desc">Converts Dry Lumber to Furniture (x20 Value).</p>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_furn_desc">Retails Goods directly to consumers (x20 Value).</p>
                         <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
                             <span data-i18n="speed">Speed:</span> <span id="eff-furniture" class="text-white font-mono font-bold">0</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-furniture">1</span>/s</span>
                         </div>
@@ -614,8 +364,8 @@
             <div id="tab-research" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div class="panel p-4 border-l-4 border-l-orange-500 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-orange-400 mb-1.5" data-i18n="r_dry_title">♨️ Advanced Wood Drying</h3>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_dry_desc">Unlock the Drying Plant. Process Lumber into high-value Dry Lumber.</p>
+                        <h3 class="text-base font-bold text-orange-400 mb-1.5" data-i18n="r_dry_title">🏭 Manufacturing Industry</h3>
+                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_dry_desc">Unlock the Factory. Process Lumber into high-value Manufactured Goods.</p>
                     </div>
                     <button class="btn-upgrade bg-orange-700 hover:bg-orange-600 px-6 py-3 rounded-lg font-bold text-sm w-full text-white" id="btn-res-drying" onclick="unlockFacility('drying')">
                         Research for $1,000
@@ -624,8 +374,8 @@
                 
                 <div class="panel p-4 border-l-4 border-l-yellow-500 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-yellow-500 mb-1.5" data-i18n="r_furn_title">🪑 Furniture Manufacturing</h3>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_furn_desc">Unlock the Factory. Assemble Dry Lumber into Premium Furniture components.</p>
+                        <h3 class="text-base font-bold text-yellow-500 mb-1.5" data-i18n="r_furn_title">🏪 Retail Supermarket</h3>
+                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_furn_desc">Unlock the Supermarket. Sell goods directly to consumers.</p>
                     </div>
                     <button class="btn-upgrade bg-slate-700 text-slate-400 px-6 py-3 rounded-lg font-bold text-sm w-full cursor-not-allowed" id="btn-res-furniture" onclick="unlockFacility('furniture')" disabled>
                         Research for $10,000
@@ -686,39 +436,21 @@
 
     <!-- Save Toast Notification -->
     <div id="save-toast" class="fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs font-bold opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-2">
-        <span>💾</span> <span data-i18n="savedToast">Saved!</span>
+        <span>💾</span> <span data-i18n="savedToast">Game State Stored</span>
     </div>
 
     <script>
-        // --- Promo Gift Codes Dictionary (10 x $5,000 Codes) ---
-        const VALID_GIFT_CODES = {
-            'LUMBER5K01': 5000,
-            'LUMBER5K02': 5000,
-            'LUMBER5K03': 5000,
-            'LUMBER5K04': 5000,
-            'LUMBER5K05': 5000,
-            'LUMBER5K06': 5000,
-            'LUMBER5K07': 5000,
-            'LUMBER5K08': 5000,
-            'LUMBER5K09': 5000,
-            'LUMBER5K10': 5000
-        };
-
-        // --- Localization Dictionary ---
+        // --- Translations ---
         const t = {
             TH: {
-                title: "อุตสาหกรรมค้าไม้",
+                title: "อุตสาหกรรมค้าไม้ 3D",
                 lore: "เริ่มต้นจากค่ายตัดไม้เล็กๆ สู่บริษัทยักษ์ใหญ่ระดับโลก! บริหารจัดการสายพานการผลิตตั้งแต่การตัดไม้ ขนส่ง แปรรูป ไปจนถึงการส่งออก",
-                howToPlay: "วิธีเล่น:<br>1. รับรายได้อัตโนมัติจากการผลิตและส่งออก<br>2. อัปเกรด 'ทีมตัดไม้' และ 'รถบรรทุก' เพื่อป้อนไม้ดิบเข้าโรงงาน<br>3. 'วิจัย' เพื่อปลดล็อกเทคโนโลยีแปรรูปไม้ใหม่ๆ (เพิ่มมูลค่าสินค้า)<br>4. เปิดตลาด 'ส่งออก' ระดับโลกเพื่อรับโบนัสตัวคูณรายได้มหาศาล",
+                howToPlay: "วิธีเล่น:<br>1. รับรายได้อัตโนมัติจากการผลิตและส่งออก<br>2. อัปเกรด 'ทีมตัดไม้' และ 'รถบรรทุก' เพื่อป้อนไม้ดิบเข้าโรงงาน<br>3. 'วิจัย' เพื่อปลดล็อกเทคโนโลยีแปรรูปไม้ใหม่ๆ<br>4. เปิดตลาด 'ส่งออก' เพื่อรับโบนัสตัวคูณรายได้<br><br>💡 คุณสามารถลากเมาส์ที่หน้าจอเกมเพื่อหมุนมุมกล้อง 3D ได้!",
                 startBtn: "เริ่มเกม",
-                continueBtn: "เล่นต่อ",
-                newGameBtn: "เริ่มเกมใหม่",
-                newGameConfirmTitle: "เริ่มเกมใหม่?",
-                newGameConfirmText: "ข้อมูลความคืบหน้าเดิมทั้งหมดจะถูกลบ คุณแน่ใจหรือไม่ที่จะเริ่มเกมใหม่?",
                 menuBtn: "เมนู",
-                menuSave: "บันทึกเกม",
+                menuSave: "บันทึกเกม (ชั่วคราว)",
                 menuRedeem: "ระบุโค้ดรางวัล",
-                menuReset: "ล้างข้อมูล",
+                menuReset: "เริ่มเกมใหม่",
                 redeemTitle: "ระบุโค้ดของรางวัล",
                 redeemDesc: "กรอกรหัสของรางวัลเพื่อรับเงินโบนัสพิเศษเข้าโรงงาน",
                 redeemConfirm: "รับรางวัล",
@@ -731,41 +463,41 @@
                 rev: "รายได้ / วิ",
                 licenses: "ใบอนุญาต",
                 capital: "ทุนทรัพย์",
-                prodChain: "สายพานการผลิต",
+                prodChain: "สถานะการผลิต",
                 raw: "ไม้ดิบ:",
                 lumber: "ไม้แปรรูป:",
-                dry: "ไม้อบแห้ง:",
-                furn: "เฟอร์นิเจอร์:",
-                b_forest: "ป่าไม้",
-                b_logging: "ตัดไม้",
-                b_factory: "โรงงาน",
-                b_transport: "ขนส่ง",
-                b_drying: "อบไม้",
+                dry: "สินค้า:",
+                furn: "ยอดขาย:",
+                b_forest: "ป่าไม้ 3D",
+                b_logging: "คนตัดไม้",
+                b_factory: "โรงงานอุตสาหกรรม",
+                b_supermarket: "ซุปเปอร์มาเก็ต",
+                b_transport: "รถบรรทุกไม้",
                 b_export: "ส่งออก",
-                b_sawmill: "โรงเลื่อย",
+                b_sawmill: "โรงเรื่อยไม้",
                 t_upg: "⚙️ อัปเกรด",
                 t_res: "🔬 วิจัย",
                 t_exp: "🌍 ส่งออก",
                 t_man: "👔 ผู้จัดการ",
                 u_log_title: "🪓 ทีมตัดไม้",
                 u_log_desc: "เพิ่มอัตราการผลิตไม้ดิบในพื้นที่ป่า",
-                u_trans_title: "🚚 ขบวนรถบรรทุก",
+                u_trans_title: "🚚 รถบรรทุกไม้",
                 u_trans_desc: "ขนย้ายไม้ดิบไปยังโรงงานแปรรูป",
-                u_saw_title: "🏭 เครื่องเลื่อยไม้",
+                u_saw_title: "🏭 โรงเรื่อยไม้",
                 u_saw_desc: "แปรรูปไม้ดิบเป็นไม้แปรรูป (มูลค่า x2)",
-                u_dry_title: "♨️ เตาอบไม้",
-                u_dry_desc: "อบไม้แปรรูปให้แห้ง (มูลค่า x4)",
-                u_furn_title: "🪑 สายพานประกอบ",
-                u_furn_desc: "ผลิตชิ้นส่วนเฟอร์นิเจอร์ (มูลค่า x20)",
+                u_dry_title: "🏭 โรงงานอุตสาหกรรม",
+                u_dry_desc: "แปรรูปไม้เป็นสินค้าอุตสาหกรรม (มูลค่า x4)",
+                u_furn_title: "🏪 ซุปเปอร์มาเก็ต",
+                u_furn_desc: "วางจำหน่ายสินค้าให้ผู้บริโภค (มูลค่า x20)",
                 yield: "ผลผลิต:",
                 cap: "ความจุ:",
                 speed: "ความเร็ว:",
                 upgrade: "อัปเกรด:",
                 req_res: "ต้องการการวิจัย",
-                r_dry_title: "♨️ เทคโนโลยีอบไม้",
-                r_dry_desc: "ปลดล็อกโรงอบไม้ แปรรูปไม้ให้มีมูลค่าสูงขึ้น",
-                r_furn_title: "🪑 การผลิตเฟอร์นิเจอร์",
-                r_furn_desc: "ปลดล็อกโรงงาน ประกอบไม้แห้งเป็นเฟอร์นิเจอร์พรีเมียม",
+                r_dry_title: "🏭 อุตสาหกรรมแปรรูป",
+                r_dry_desc: "ปลดล็อกโรงงานอุตสาหกรรม แปลงไม้แปรรูปเป็นสินค้ามูลค่าสูง",
+                r_furn_title: "🏪 ซุปเปอร์มาเก็ต",
+                r_furn_desc: "ปลดล็อกซุปเปอร์มาเก็ตเพื่อขายสินค้าปลีก",
                 r_btn: "วิจัยราคา",
                 researched: "วิจัยแล้ว",
                 e_dom: "ตลาดในประเทศ",
@@ -782,28 +514,19 @@
                 mkt_JP: "🇯🇵 ญี่ปุ่น",
                 mkt_EU: "🇪🇺 ยุโรป",
                 mkt_US: "🇺🇸 อเมริกา",
-                resetBtn: "ล้างข้อมูล",
+                resetBtn: "รีเซ็ต",
                 resetConfirmTitle: "ยืนยันการล้างข้อมูล?",
-                resetConfirmText: "ข้อมูลความคืบหน้าทั้งหมดของคุณจะถูกลบ คุณแน่ใจหรือไม่?",
+                resetConfirmText: "ข้อมูลความคืบหน้าปัจจุบันทั้งหมดของคุณจะถูกลบ คุณแน่ใจหรือไม่?",
                 cancelBtn: "ยกเลิก",
-                savedToast: "บันทึกแล้ว!",
-                saveBtn: "บันทึก",
-                offlineTitle: "รายได้ขณะออฟไลน์",
-                offlineTime: "เวลาที่หายไป:",
-                offlineEarned: "รายได้ (ประสิทธิภาพ 50%):",
-                offlineBtn: "รับเงิน"
+                savedToast: "บันทึกในหน่วยความจำแล้ว!"
             },
             EN: {
-                title: "TIMBER CORP IDLE",
+                title: "TIMBER CORP 3D",
                 lore: "Grow from a small logging camp into a global timber empire! Manage your supply chain from harvesting, transporting, processing, to exporting.",
-                howToPlay: "How to Play:<br>1. Collect passive income from your automated export line.<br>2. Upgrade 'Logging' and 'Transport' to feed your sawmills.<br>3. 'Research' new tech to unlock high-value products.<br>4. Expand to global 'Export' markets for huge income multipliers.",
+                howToPlay: "How to Play:<br>1. Collect passive income from your automated export line.<br>2. Upgrade 'Logging' and 'Transport' to feed your sawmills.<br>3. 'Research' new tech to unlock high-value products.<br>4. Expand to global 'Export' markets for huge income multipliers.<br><br>💡 Drag on the game screen to rotate the 3D camera!",
                 startBtn: "START GAME",
-                continueBtn: "CONTINUE",
-                newGameBtn: "NEW GAME",
-                newGameConfirmTitle: "Start New Game?",
-                newGameConfirmText: "All saved progress will be erased. Are you sure you want to start a new game?",
                 menuBtn: "Menu",
-                menuSave: "Save Game",
+                menuSave: "Save Session",
                 menuRedeem: "Redeem Code",
                 menuReset: "Reset Progress",
                 redeemTitle: "Redeem Gift Code",
@@ -821,14 +544,14 @@
                 prodChain: "Production Chain",
                 raw: "Raw Wood:",
                 lumber: "Lumber:",
-                dry: "Dry Lumber:",
-                furn: "Furniture:",
-                b_forest: "Forest",
-                b_logging: "Logging",
-                b_factory: "Factory",
-                b_transport: "Transport",
-                b_drying: "Drying",
-                b_export: "Export",
+                dry: "Goods:",
+                furn: "Sales:",
+                b_forest: "3D Forest",
+                b_logging: "Lumberjack",
+                b_factory: "Industrial Factory",
+                b_supermarket: "Supermarket",
+                b_transport: "Log Truck",
+                b_export: "Export Dock",
                 b_sawmill: "Sawmill",
                 t_upg: "⚙️ UPGRADES",
                 t_res: "🔬 RESEARCH",
@@ -836,23 +559,23 @@
                 t_man: "👔 MANAGERS",
                 u_log_title: "🪓 Logging Team",
                 u_log_desc: "Increases Raw Wood generation in the forest.",
-                u_trans_title: "🚚 Truck Fleet",
+                u_trans_title: "🚚 Log Truck",
                 u_trans_desc: "Moves Raw Wood to processing facilities.",
                 u_saw_title: "🏭 Sawmill Engine",
                 u_saw_desc: "Converts Raw Wood to Lumber (x2 Value).",
-                u_dry_title: "♨️ Drying Kilns",
-                u_dry_desc: "Converts Lumber to Dry Lumber (x4 Value).",
-                u_furn_title: "🪑 Assembly Line",
-                u_furn_desc: "Converts Dry Lumber to Furniture (x20 Value).",
+                u_dry_title: "🏭 Industrial Factory",
+                u_dry_desc: "Converts Lumber to Manufactured Goods (x4 Value).",
+                u_furn_title: "🏪 Supermarket",
+                u_furn_desc: "Retails Goods directly to consumers (x20 Value).",
                 yield: "Yield:",
                 cap: "Capacity:",
                 speed: "Speed:",
                 upgrade: "Upgrade:",
                 req_res: "Requires Research",
-                r_dry_title: "♨️ Advanced Wood Drying",
-                r_dry_desc: "Unlock the Drying Plant. Process Lumber into high-value Dry Lumber.",
-                r_furn_title: "🪑 Furniture Manufacturing",
-                r_furn_desc: "Unlock the Factory. Assemble Dry Lumber into Premium Furniture.",
+                r_dry_title: "🏭 Manufacturing Industry",
+                r_dry_desc: "Unlock the Factory. Process Lumber into high-value Manufactured Goods.",
+                r_furn_title: "🏪 Retail Supermarket",
+                r_furn_desc: "Unlock the Supermarket. Sell goods directly to consumers.",
                 r_btn: "Research for",
                 researched: "RESEARCHED",
                 e_dom: "Domestic Market",
@@ -871,46 +594,24 @@
                 mkt_US: "🇺🇸 USA",
                 resetBtn: "Reset",
                 resetConfirmTitle: "Reset Progress?",
-                resetConfirmText: "This will erase all your game data. Are you sure?",
+                resetConfirmText: "This will erase all your current session game data. Are you sure?",
                 cancelBtn: "Cancel",
-                savedToast: "Saved!",
-                saveBtn: "Save",
-                offlineTitle: "Offline Earnings",
-                offlineTime: "Time Away:",
-                offlineEarned: "Earned (50% Eff.):",
-                offlineBtn: "Collect"
+                savedToast: "Session saved to memory!"
             }
         };
 
-        // --- Game State & Configuration ---
+        const VALID_GIFT_CODES = { 'LUMBER5K01': 5000, 'LUMBER5K02': 5000, 'LUMBER5K03': 5000 };
+        
         let currentLang = 'TH';
         let isGameStarted = false;
-        let pendingOfflineIncome = 0;
-        let pendingOfflineSeconds = 0;
         let lastTickTime = Date.now();
 
         const game = {
-            version: 1,
-            lastSaveTime: Date.now(),
             money: 0,
             premium: 0,
             usedCodes: [],
-            
-            stats: {
-                logging: 1,
-                transport: 0,
-                sawmill: 0,
-                drying: 0,
-                furniture: 0
-            },
-            
-            prices: {
-                raw: 1,
-                lumber: 2,
-                dry: 4,
-                furniture: 20
-            },
-            
+            stats: { logging: 1, transport: 0, sawmill: 0, drying: 0, furniture: 0 },
+            prices: { raw: 1, lumber: 2, dry: 4, furniture: 20 },
             upgrades: {
                 logging:   { level: 1, base: 10, multi: 1.2, statStep: 1 },
                 transport: { level: 0, base: 25, multi: 1.3, statStep: 1 },
@@ -918,12 +619,7 @@
                 drying:    { level: 0, base: 250, multi: 1.5, statStep: 0.5 },
                 furniture: { level: 0, base: 1500, multi: 1.6, statStep: 0.25 }
             },
-
-            unlocks: {
-                drying: false,
-                furniture: false
-            },
-
+            unlocks: { drying: false, furniture: false },
             market: 'TH',
             exportData: {
                 TH: { mult: 1.0, unlocked: true },
@@ -931,333 +627,72 @@
                 EU: { mult: 2.0, unlocked: false, cost: 25000 },
                 US: { mult: 2.2, unlocked: false, cost: 100000 }
             },
-            
             lastIncomeRate: 0
         };
 
-        // --- Dropdown Menu Handlers ---
+        const animState = {
+            forest: false, logging: false, transport: false,
+            sawmill: false, drying: false, furniture: false, dock: false
+        };
+
         function toggleDropdown(e) {
             e.stopPropagation();
-            const dropdown = document.getElementById('settings-dropdown');
-            dropdown.classList.toggle('hidden');
+            document.getElementById('settings-dropdown').classList.toggle('hidden');
         }
-
         function closeDropdownIfOpen() {
-            const dropdown = document.getElementById('settings-dropdown');
-            if (dropdown && !dropdown.classList.contains('hidden')) {
-                dropdown.classList.add('hidden');
-            }
+            const dp = document.getElementById('settings-dropdown');
+            if (dp && !dp.classList.contains('hidden')) dp.classList.add('hidden');
         }
-
         function triggerSaveFromMenu() {
             closeDropdownIfOpen();
-            saveGame(false);
+            saveGame();
         }
-
         function triggerResetFromMenu() {
             closeDropdownIfOpen();
             document.getElementById('reset-modal').classList.remove('hidden');
         }
-
         function openRedeemModal() {
             closeDropdownIfOpen();
             document.getElementById('code-input').value = '';
             document.getElementById('code-error').classList.add('hidden');
             document.getElementById('redeem-modal').classList.remove('hidden');
         }
-
-        function closeRedeemModal() {
-            document.getElementById('redeem-modal').classList.add('hidden');
-        }
+        function closeRedeemModal() { document.getElementById('redeem-modal').classList.add('hidden'); }
+        function confirmReset() { location.reload(); }
 
         function submitGiftCode() {
             const inputEl = document.getElementById('code-input');
             const errorEl = document.getElementById('code-error');
             const code = inputEl.value.trim().toUpperCase();
-
-            if (!code) return;
-
-            if (!VALID_GIFT_CODES[code]) {
-                errorEl.innerText = t[currentLang].redeemErrInvalid;
-                errorEl.classList.remove('hidden');
-                return;
+            if (!code || !VALID_GIFT_CODES[code]) {
+                errorEl.innerText = t[currentLang].redeemErrInvalid; errorEl.classList.remove('hidden'); return;
             }
-
-            if (game.usedCodes && game.usedCodes.includes(code)) {
-                errorEl.innerText = t[currentLang].redeemErrUsed;
-                errorEl.classList.remove('hidden');
-                return;
+            if (game.usedCodes.includes(code)) {
+                errorEl.innerText = t[currentLang].redeemErrUsed; errorEl.classList.remove('hidden'); return;
             }
-
-            // Grant reward
-            const rewardAmount = VALID_GIFT_CODES[code];
-            game.money += rewardAmount;
-            if (!game.usedCodes) game.usedCodes = [];
+            
+            game.money += VALID_GIFT_CODES[code];
             game.usedCodes.push(code);
-
-            updateUI();
-            saveGame(true);
-
-            closeRedeemModal();
-
-            // Show Congratulations Pop-up
-            document.getElementById('reward-message').innerHTML = `${t[currentLang].redeemSuccessMsg} <br><strong class="text-emerald-400 font-mono text-base">+$${rewardAmount.toLocaleString()} Cash</strong>`;
+            updateUI(); closeRedeemModal();
+            
+            document.getElementById('reward-message').innerHTML = `${t[currentLang].redeemSuccessMsg} <br><strong class="text-emerald-400 font-mono text-base">+$${VALID_GIFT_CODES[code].toLocaleString()} Cash</strong>`;
             document.getElementById('reward-modal').classList.remove('hidden');
         }
 
-        // --- Save System ---
-        const SAVE_KEY = 'timberCorpIdleSave';
-
-        function readSaveString() {
-            try {
-                return localStorage.getItem(SAVE_KEY);
-            } catch (e) {
-                console.error('Cannot read save data from storage.', e);
-                return null;
+        function saveGame() {
+            const toast = document.getElementById('save-toast');
+            if (toast) {
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 2000);
             }
-        }
-
-        function saveGame(isAuto = false) {
-            const previousSaveTime = game.lastSaveTime;
-            game.lastSaveTime = Date.now();
-            const saveData = {
-                version: 1,
-                game: game,
-                lang: currentLang,
-                pendingOfflineIncome: pendingOfflineIncome,
-                pendingOfflineSeconds: pendingOfflineSeconds
-            };
-
-            try {
-                localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-                const toast = document.getElementById('save-toast');
-                if (toast && !isAuto) {
-                    toast.classList.remove('opacity-0');
-                    setTimeout(() => toast.classList.add('opacity-0'), 2000);
-                }
-                return true;
-            } catch (e) {
-                game.lastSaveTime = previousSaveTime;
-                console.error('Failed to save game.', e);
-                return false;
-            }
-        }
-
-        function loadGame() {
-            const saveStr = readSaveString();
-            if (!saveStr) return false;
-
-            try {
-                const saveData = JSON.parse(saveStr);
-                if (!saveData || !saveData.game || typeof saveData.game !== 'object') {
-                    throw new Error('Invalid save format');
-                }
-
-                const saved = saveData.game;
-                if (Number.isFinite(saved.money)) game.money = Math.max(0, saved.money);
-                if (Number.isFinite(saved.premium)) game.premium = Math.max(0, saved.premium);
-                if (Array.isArray(saved.usedCodes)) game.usedCodes = saved.usedCodes;
-                if (['TH', 'JP', 'EU', 'US'].includes(saved.market)) game.market = saved.market;
-                if (Number.isFinite(saved.lastSaveTime)) game.lastSaveTime = saved.lastSaveTime;
-
-                if (saved.stats && typeof saved.stats === 'object') {
-                    Object.keys(game.stats).forEach(k => {
-                        if (Number.isFinite(saved.stats[k])) game.stats[k] = Math.max(0, saved.stats[k]);
-                    });
-                }
-                if (saved.upgrades && typeof saved.upgrades === 'object') {
-                    Object.keys(game.upgrades).forEach(k => {
-                        const old = saved.upgrades[k];
-                        if (old && typeof old === 'object' && Number.isFinite(old.level)) {
-                            game.upgrades[k].level = Math.max(0, old.level);
-                        }
-                    });
-                }
-                if (saved.unlocks && typeof saved.unlocks === 'object') {
-                    Object.keys(game.unlocks).forEach(k => {
-                        if (typeof saved.unlocks[k] === 'boolean') game.unlocks[k] = saved.unlocks[k];
-                    });
-                }
-                if (saved.exportData && typeof saved.exportData === 'object') {
-                    Object.keys(game.exportData).forEach(k => {
-                        const old = saved.exportData[k];
-                        if (old && typeof old === 'object') {
-                            if (typeof old.unlocked === 'boolean') game.exportData[k].unlocked = old.unlocked;
-                            if (Number.isFinite(old.mult)) game.exportData[k].mult = old.mult;
-                            if (Number.isFinite(old.cost)) game.exportData[k].cost = old.cost;
-                        }
-                    });
-                }
-
-                currentLang = saveData.lang === 'EN' ? 'EN' : 'TH';
-                pendingOfflineIncome = Number.isFinite(saveData.pendingOfflineIncome) ? Math.max(0, saveData.pendingOfflineIncome) : 0;
-                pendingOfflineSeconds = Number.isFinite(saveData.pendingOfflineSeconds) ? Math.max(0, saveData.pendingOfflineSeconds) : 0;
-                document.getElementById('lang-toggle').innerText = currentLang === 'TH' ? 'EN' : 'TH';
-
-                if (game.unlocks.drying) unlockFacilityVisuals('drying');
-                if (game.unlocks.furniture) unlockFacilityVisuals('furniture');
-                setMarket(game.market);
-
-                const now = Date.now();
-                const offlineMillis = Math.max(0, now - game.lastSaveTime);
-                if (offlineMillis > 60000) {
-                    calculateOfflineProgress(Math.floor(offlineMillis / 1000));
-                }
-
-                game.lastSaveTime = now;
-                saveGame(true);
-                return true;
-            } catch (e) {
-                console.error('Save data is invalid.', e);
-                return false;
-            }
-        }
-
-        function calculateOfflineProgress(seconds) {
-            const maxOfflineSeconds = 8 * 60 * 60;
-            const actualSeconds = Math.min(Math.max(0, seconds), maxOfflineSeconds);
-            const efficiency = 0.5;
-            const prod = calculateProduction(actualSeconds, efficiency, false);
-
-            if (prod.income > 0) {
-                pendingOfflineIncome = prod.income;
-                pendingOfflineSeconds = actualSeconds;
-            }
-        }
-
-        function collectOfflineEarnings() {
-            if (pendingOfflineIncome > 0) {
-                game.money += pendingOfflineIncome;
-                pendingOfflineIncome = 0;
-                pendingOfflineSeconds = 0;
-                updateUI();
-                saveGame();
-            }
-            document.getElementById('offline-modal').classList.add('hidden');
-        }
-
-        function formatTime(totalSeconds) {
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = Math.floor(totalSeconds % 60);
-            if (h > 0) return `${h}h ${m}m`;
-            if (m > 0) return `${m}m ${s}s`;
-            return `${s}s`;
-        }
-
-        function confirmReset() {
-            try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-            location.reload();
-        }
-
-        function hasSaveData() {
-            return !!readSaveString();
-        }
-
-        function initStartScreen() {
-            const saveStr = readSaveString();
-            if (saveStr) {
-                try {
-                    const parsed = JSON.parse(saveStr);
-                    if (parsed && parsed.lang) {
-                        currentLang = parsed.lang;
-                    }
-                } catch(e) {}
-            }
-            document.getElementById('lang-toggle').innerText = currentLang === 'TH' ? 'EN' : 'TH';
-            applyLanguage();
-        }
-
-        function updateStartScreenButtons() {
-            const btnContainer = document.getElementById('start-buttons');
-            if (!btnContainer) return;
-            
-            if (hasSaveData()) {
-                btnContainer.innerHTML = `
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center w-full">
-                        <button onclick="continueGame()" class="btn-touch w-full sm:w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-lg text-base shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all flex items-center justify-center gap-2">
-                            <span>▶️</span> <span data-i18n="continueBtn">${t[currentLang].continueBtn}</span>
-                        </button>
-                        <button onclick="startNewGamePrompt()" class="btn-touch w-full sm:w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3.5 px-6 rounded-lg text-base border border-slate-500 transition-all flex items-center justify-center gap-2">
-                            <span>🔄</span> <span data-i18n="newGameBtn">${t[currentLang].newGameBtn}</span>
-                        </button>
-                    </div>
-                `;
-            } else {
-                btnContainer.innerHTML = `
-                    <button onclick="startGameFirst()" class="btn-touch w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg text-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all" data-i18n="startBtn">
-                        ${t[currentLang].startBtn}
-                    </button>
-                `;
-            }
-        }
-
-        function continueGame() {
-            loadGame();
-            startGame();
-        }
-
-        function startNewGamePrompt() {
-            document.getElementById('new-game-modal').classList.remove('hidden');
-        }
-
-        function confirmNewGame() {
-            document.getElementById('new-game-modal').classList.add('hidden');
-            try { localStorage.removeItem(SAVE_KEY); } catch(e){}
-            
-            game.money = 0;
-            game.premium = 0;
-            game.usedCodes = [];
-            game.market = 'TH';
-            game.stats = { logging: 1, transport: 0, sawmill: 0, drying: 0, furniture: 0 };
-            game.upgrades = {
-                logging:   { level: 1, base: 10, multi: 1.2, statStep: 1 },
-                transport: { level: 0, base: 25, multi: 1.3, statStep: 1 },
-                sawmill:   { level: 0, base: 50, multi: 1.4, statStep: 1 },
-                drying:    { level: 0, base: 250, multi: 1.5, statStep: 0.5 },
-                furniture: { level: 0, base: 1500, multi: 1.6, statStep: 0.25 }
-            };
-            game.unlocks = { drying: false, furniture: false };
-            game.exportData = {
-                TH: { mult: 1.0, unlocked: true },
-                JP: { mult: 1.5, unlocked: false, cost: 5000 },
-                EU: { mult: 2.0, unlocked: false, cost: 25000 },
-                US: { mult: 2.2, unlocked: false, cost: 100000 }
-            };
-            game.lastIncomeRate = 0;
-            pendingOfflineIncome = 0;
-            pendingOfflineSeconds = 0;
-
-            document.getElementById('bldg-drying').classList.add('locked-building');
-            document.getElementById('card-drying').classList.add('opacity-50');
-            document.getElementById('btn-upg-drying').disabled = true;
-
-            document.getElementById('bldg-furniture').classList.add('locked-building');
-            document.getElementById('card-furniture').classList.add('opacity-50');
-            document.getElementById('btn-upg-furniture').disabled = true;
-
-            setMarket('TH');
-            updateUI();
-            saveGame();
-            startGame();
-        }
-
-        function startGameFirst() {
-            startGame();
         }
 
         function startGame() {
             document.getElementById('start-screen').style.display = 'none';
             isGameStarted = true;
             lastTickTime = Date.now();
-            
-            if (pendingOfflineIncome > 0) {
-                document.getElementById('offline-time').innerText = formatTime(pendingOfflineSeconds);
-                document.getElementById('offline-earned').innerText = `+${formatMoney(pendingOfflineIncome)}`;
-                document.getElementById('offline-modal').classList.remove('hidden');
-            }
-
             requestAnimationFrame(gameLoop);
+            updateLabels();
         }
 
         function toggleLang() {
@@ -1269,112 +704,28 @@
         function applyLanguage() {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (t[currentLang][key]) {
-                    el.innerHTML = t[currentLang][key];
-                }
+                if (t[currentLang][key]) el.innerHTML = t[currentLang][key];
             });
             setMarket(game.market);
-            updateStartScreenButtons();
             updateUI();
+            updateLabelsText();
         }
 
-        // --- Delta-Time Game Loop ---
-        let cashEffectTimer = 0;
-
-        function gameLoop() {
-            if (!isGameStarted) return;
-
-            const now = Date.now();
-            let dt = (now - lastTickTime) / 1000;
-            lastTickTime = now;
-
-            if (dt < 0) dt = 0;
-            if (dt > 10) dt = 10;
-
-            gameLoopTick(dt);
-            updateUI();
-
-            requestAnimationFrame(gameLoop);
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            btnElement.classList.add('active');
         }
 
-        setInterval(() => {
-            if (isGameStarted) saveGame(true);
-        }, 5000);
-
-        function calculateProduction(seconds, efficiencyMultiplier = 1.0, applyIncome = true) {
-            const timeMult = seconds * efficiencyMultiplier;
-            const m = game.exportData[game.market].mult;
-            
-            let rawAvailable = game.stats.logging * timeMult;
-            let transported = Math.min(rawAvailable, game.stats.transport * timeMult);
-            let rawRemaining = rawAvailable - transported;
-
-            let processedLumber = Math.min(transported, game.stats.sawmill * timeMult);
-            let factoryRawRemaining = transported - processedLumber;
-
-            let processedDry = 0;
-            let lumberRemaining = processedLumber;
-            if (game.unlocks.drying) {
-                processedDry = Math.min(processedLumber, game.stats.drying * timeMult);
-                lumberRemaining = processedLumber - processedDry;
-            }
-
-            let processedFurniture = 0;
-            let dryRemaining = processedDry;
-            if (game.unlocks.furniture) {
-                processedFurniture = Math.min(processedDry, game.stats.furniture * timeMult);
-                dryRemaining = processedDry - processedFurniture;
-            }
-
-            let sellRaw = rawRemaining + factoryRawRemaining;
-            let sellLumber = lumberRemaining;
-            let sellDry = dryRemaining;
-            let sellFurniture = processedFurniture;
-
-            let income = 0;
-            income += sellRaw * game.prices.raw * m;
-            income += sellLumber * game.prices.lumber * m;
-            income += sellDry * game.prices.dry * m;
-            income += sellFurniture * game.prices.furniture * m;
-
-            if (applyIncome) {
-                game.money += income;
-                if (seconds > 0) {
-                    game.lastIncomeRate = income / seconds;
-                }
-            }
-
-            return { 
-                income, sellRaw, sellLumber, sellDry, sellFurniture, 
-                rawAvailable, transported, processedLumber, processedDry, processedFurniture 
-            };
-        }
-
-        function gameLoopTick(dt) {
-            const prod = calculateProduction(dt, 1.0, true);
-
-            const perSecFactor = dt > 0 ? (1 / dt) : 1;
-            document.getElementById('stat-raw').innerText = `${(prod.sellRaw * perSecFactor).toFixed(1)}/s`;
-            document.getElementById('stat-lumber').innerText = `${(prod.sellLumber * perSecFactor).toFixed(1)}/s`;
-            document.getElementById('stat-dry').innerText = `${(prod.sellDry * perSecFactor).toFixed(1)}/s`;
-            document.getElementById('stat-furniture').innerText = `${(prod.sellFurniture * perSecFactor).toFixed(1)}/s`;
-
-            cashEffectTimer += dt;
-            if (cashEffectTimer >= 1.5 && game.lastIncomeRate > 0) {
-                cashEffectTimer = 0;
-                spawnFloatingCash(game.lastIncomeRate * 1.5);
-            }
-        }
-
-        function getCost(key) {
-            const u = game.upgrades[key];
-            return Math.floor(u.base * Math.pow(u.multi, u.level));
-        }
-        
         function formatMoney(amount) {
             if (amount >= 1000000) return '$' + (amount / 1000000).toFixed(2) + 'M';
             if (amount >= 1000) return '$' + (amount / 1000).toFixed(1) + 'k';
             return '$' + Math.floor(amount).toLocaleString();
+        }
+        function getCost(key) {
+            const u = game.upgrades[key];
+            return Math.floor(u.base * Math.pow(u.multi, u.level));
         }
 
         function buyUpgrade(key) {
@@ -1384,14 +735,14 @@
                 game.upgrades[key].level++;
                 game.stats[key] += game.upgrades[key].statStep;
                 updateUI();
-                saveGame();
             }
         }
 
         function unlockFacilityVisuals(key) {
-            document.getElementById(`bldg-${key}`).classList.remove('locked-building');
-            document.getElementById(`card-${key}`).classList.remove('opacity-50');
-            document.getElementById(`btn-upg-${key}`).disabled = false;
+            const card = document.getElementById(`card-${key}`);
+            if (card) card.classList.remove('opacity-50');
+            const btnUpg = document.getElementById(`btn-upg-${key}`);
+            if (btnUpg) btnUpg.disabled = false;
             
             const resBtn = document.getElementById(`btn-res-${key}`);
             if(resBtn) {
@@ -1399,7 +750,6 @@
                 resBtn.classList.replace('bg-yellow-700', 'bg-slate-700');
                 resBtn.disabled = true;
             }
-
             if (key === 'drying') {
                 const furnBtn = document.getElementById('btn-res-furniture');
                 if(furnBtn) {
@@ -1410,6 +760,7 @@
                     furnBtn.classList.add('hover:bg-yellow-500');
                 }
             }
+            buildThreeJSFacility(key, true);
         }
 
         function unlockFacility(key) {
@@ -1419,7 +770,6 @@
                 game.unlocks[key] = true;
                 unlockFacilityVisuals(key);
                 updateUI();
-                saveGame();
             }
         }
 
@@ -1430,17 +780,15 @@
                 data.unlocked = true;
                 setMarket(key);
                 updateUI();
-                saveGame();
-            } else if (data.unlocked) {
-                setMarket(key);
-            }
+            } else if (data.unlocked) setMarket(key);
         }
 
         function setMarket(key) {
             game.market = key;
             const lang = t[currentLang];
-            document.getElementById('hdr-region').innerText = lang['mkt_' + key];
-            
+            const hdrRegion = document.getElementById('hdr-region');
+            if (hdrRegion) hdrRegion.innerText = lang['mkt_' + key];
+
             ['TH','JP','EU','US'].forEach(m => {
                 const btn = document.getElementById(`btn-exp-${m.toLowerCase()}`);
                 if(btn) {
@@ -1448,19 +796,18 @@
                     if (isUnlocked && game.market !== m) {
                         btn.innerHTML = lang.e_select;
                         btn.classList.replace('bg-emerald-600', 'bg-slate-700');
-                        btn.parentElement.classList.replace('border-emerald-500', 'border-slate-600');
+                        if (btn.parentElement) btn.parentElement.classList.replace('border-emerald-500', 'border-slate-600');
                         btn.onclick = () => setMarket(m);
                         btn.classList.add('btn-upgrade', 'hover:bg-slate-600');
                         btn.classList.remove('cursor-default');
                     }
                 }
             });
-
             const activeBtn = document.getElementById(`btn-exp-${key.toLowerCase()}`);
             if(activeBtn) {
                 activeBtn.innerHTML = lang.e_active;
                 activeBtn.classList.replace('bg-slate-700', 'bg-emerald-600');
-                activeBtn.parentElement.classList.replace('border-slate-600', 'border-emerald-500');
+                if (activeBtn.parentElement) activeBtn.parentElement.classList.replace('border-slate-600', 'border-emerald-500');
                 activeBtn.onclick = null;
                 activeBtn.classList.remove('btn-upgrade', 'hover:bg-slate-600');
                 activeBtn.classList.add('cursor-default');
@@ -1469,25 +816,27 @@
 
         function updateUI() {
             const lang = t[currentLang];
-            
-            document.getElementById('display-money').innerText = formatMoney(game.money);
-            document.getElementById('display-premium').innerText = game.premium;
-            document.getElementById('display-income-rate').innerText = `+${formatMoney(game.lastIncomeRate)}`;
+            const dMoney = document.getElementById('display-money');
+            if (dMoney) dMoney.innerText = formatMoney(game.money);
+            const dPrem = document.getElementById('display-premium');
+            if (dPrem) dPrem.innerText = game.premium;
+            const dInc = document.getElementById('display-income-rate');
+            if (dInc) dInc.innerText = `+${formatMoney(game.lastIncomeRate)}`;
 
             ['logging', 'transport', 'sawmill', 'drying', 'furniture'].forEach(k => {
                 const u = game.upgrades[k];
                 const cost = getCost(k);
-                
                 const btn = document.getElementById(`btn-upg-${k}`);
                 if ((k === 'drying' && !game.unlocks.drying) || (k === 'furniture' && !game.unlocks.furniture)) {
-                    if (btn) btn.innerHTML = lang.req_res;
-                    return;
+                    if (btn) btn.innerHTML = lang.req_res; return;
                 }
+                const lvlEl = document.getElementById(`lvl-${k}`);
+                if (lvlEl) lvlEl.innerText = u.level;
+                const effEl = document.getElementById(`eff-${k}`);
+                if (effEl) effEl.innerText = game.stats[k].toFixed(1);
+                const nextEffEl = document.getElementById(`next-eff-${k}`);
+                if (nextEffEl) nextEffEl.innerText = (game.stats[k] + u.statStep).toFixed(1);
 
-                document.getElementById(`lvl-${k}`).innerText = u.level;
-                document.getElementById(`eff-${k}`).innerText = game.stats[k].toFixed(1);
-                document.getElementById(`next-eff-${k}`).innerText = (game.stats[k] + u.statStep).toFixed(1);
-                
                 if (btn) {
                     btn.innerHTML = `${lang.upgrade} $${formatMoney(cost).replace('$', '')}`;
                     btn.disabled = game.money < cost;
@@ -1495,49 +844,463 @@
             });
 
             const resDryingBtn = document.getElementById('btn-res-drying');
-            if(!game.unlocks.drying) {
-                resDryingBtn.disabled = game.money < 1000;
-                resDryingBtn.innerHTML = `${lang.r_btn} $1,000`;
-            } else {
-                resDryingBtn.innerHTML = lang.researched;
+            if(resDryingBtn) {
+                if(!game.unlocks.drying) { 
+                    resDryingBtn.disabled = game.money < 1000; 
+                    resDryingBtn.innerHTML = `${lang.r_btn} $1,000`; 
+                } else { 
+                    resDryingBtn.innerHTML = lang.researched; 
+                }
             }
             
             const resFurnBtn = document.getElementById('btn-res-furniture');
-            if(!game.unlocks.furniture) {
-                resFurnBtn.disabled = game.money < 10000 || !game.unlocks.drying;
-                resFurnBtn.innerHTML = `${lang.r_btn} $10,000`;
-            } else {
-                resFurnBtn.innerHTML = lang.researched;
+            if(resFurnBtn) {
+                if(!game.unlocks.furniture) { 
+                    resFurnBtn.disabled = game.money < 10000 || !game.unlocks.drying; 
+                    resFurnBtn.innerHTML = `${lang.r_btn} $10,000`; 
+                } else { 
+                    resFurnBtn.innerHTML = lang.researched; 
+                }
             }
 
             ['JP', 'EU', 'US'].forEach(m => {
-                const data = game.exportData[m];
                 const btn = document.getElementById(`btn-exp-${m.toLowerCase()}`);
-                if (!data.unlocked) {
-                    btn.disabled = game.money < data.cost;
-                    btn.innerHTML = `${lang.e_unlock} $${formatMoney(data.cost).replace('$', '')}`;
+                if (btn && !game.exportData[m].unlocked) {
+                    btn.disabled = game.money < game.exportData[m].cost;
+                    btn.innerHTML = `${lang.e_unlock} $${formatMoney(game.exportData[m].cost).replace('$', '')}`;
                 }
             });
         }
 
+        let cashEffectTimer = 0;
+        function gameLoop() {
+            if (!isGameStarted) return;
+            const now = Date.now();
+            let dt = (now - lastTickTime) / 1000;
+            lastTickTime = now;
+            if (dt < 0) dt = 0; if (dt > 10) dt = 10;
+
+            const timeMult = dt;
+            const m = game.exportData[game.market].mult;
+            
+            let rawAvail = game.stats.logging * timeMult;
+            let trans = Math.min(rawAvail, game.stats.transport * timeMult);
+            let pLumber = Math.min(trans, game.stats.sawmill * timeMult);
+            let pDry = game.unlocks.drying ? Math.min(pLumber, game.stats.drying * timeMult) : 0;
+            let pFurn = game.unlocks.furniture ? Math.min(pDry, game.stats.furniture * timeMult) : 0;
+
+            let sRaw = rawAvail - trans + (trans - pLumber);
+            let sLumber = pLumber - pDry;
+            let sDry = pDry - pFurn;
+            let sFurn = pFurn;
+
+            let inc = (sRaw * game.prices.raw + sLumber * game.prices.lumber + sDry * game.prices.dry + sFurn * game.prices.furniture) * m;
+            
+            game.money += inc;
+            if (dt > 0) game.lastIncomeRate = inc / dt;
+
+            animState.forest = rawAvail > 0;
+            animState.logging = rawAvail > 0;
+            animState.transport = trans > 0;
+            animState.sawmill = pLumber > 0;
+            animState.drying = pDry > 0;
+            animState.furniture = pFurn > 0;
+            animState.dock = inc > 0;
+
+            const sec = dt > 0 ? (1/dt) : 1;
+            const stRaw = document.getElementById('stat-raw');
+            if (stRaw) stRaw.innerText = `${(sRaw * sec).toFixed(1)}/s`;
+            const stLumber = document.getElementById('stat-lumber');
+            if (stLumber) stLumber.innerText = `${(sLumber * sec).toFixed(1)}/s`;
+            const stDry = document.getElementById('stat-dry');
+            if (stDry) stDry.innerText = `${(sDry * sec).toFixed(1)}/s`;
+            const stFurn = document.getElementById('stat-furniture');
+            if (stFurn) stFurn.innerText = `${(sFurn * sec).toFixed(1)}/s`;
+
+            cashEffectTimer += dt;
+            if (cashEffectTimer >= 1.5 && game.lastIncomeRate > 0) {
+                cashEffectTimer = 0;
+                spawnFloatingCash(game.lastIncomeRate * 1.5);
+            }
+            updateUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        let scene, camera, renderer, controls;
+        let threeObjects = { trees: [], truck: null, saw: null, hammer: null, boat: null, smoke: [], groups: {} };
+        const labelData = [];
+
+        function initThreeJS() {
+            const container = document.getElementById('three-container');
+            if (!container) return;
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.004);
+
+            camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 1000);
+            camera.position.set(70, 75, 70);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.1; 
+            controls.minDistance = 40;
+            controls.maxDistance = 150;
+            controls.target.set(0, 0, 0);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight.position.set(30, 60, 30);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            buildEntireScene();
+
+            window.addEventListener('resize', () => {
+                if (!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                updateLabels();
+            });
+
+            requestAnimationFrame(animateThreeJS);
+        }
+
+        const mats = {
+            tileForest: new THREE.MeshStandardMaterial({color: 0x86efac}),
+            tileLog: new THREE.MeshStandardMaterial({color: 0x4ade80}),
+            tileRoad: new THREE.MeshStandardMaterial({color: 0x9ca3af}),
+            tileSaw: new THREE.MeshStandardMaterial({color: 0xd6d3d1}),
+            tileDry: new THREE.MeshStandardMaterial({color: 0xea580c}),
+            tileFurn: new THREE.MeshStandardMaterial({color: 0xf59e0b}),
+            tileWater: new THREE.MeshStandardMaterial({color: 0x3b82f6, transparent:true, opacity:0.8}),
+            woodDark: new THREE.MeshStandardMaterial({color: 0x78350f}),
+            woodLight: new THREE.MeshStandardMaterial({color: 0x92400e}),
+            leaf: new THREE.MeshStandardMaterial({color: 0x22c55e, flatShading: true}),
+            metal: new THREE.MeshStandardMaterial({color: 0x94a3b8, metalness: 0.6, roughness: 0.3}),
+            truckYellow: new THREE.MeshStandardMaterial({color: 0xfacc15}),
+            truckRed: new THREE.MeshStandardMaterial({color: 0x7f1d1d}),
+            skin: new THREE.MeshStandardMaterial({color: 0xfcd34d}),
+            shirtRed: new THREE.MeshStandardMaterial({color: 0xb91c1c}),
+            jeansBlue: new THREE.MeshStandardMaterial({color: 0x1d4ed8}),
+            bldgRed: new THREE.MeshStandardMaterial({color: 0x991b1b}),
+            bldgOrange: new THREE.MeshStandardMaterial({color: 0xc2410c}),
+            bldgWhite: new THREE.MeshStandardMaterial({color: 0xf8fafc}),
+            glass: new THREE.MeshStandardMaterial({color: 0x38bdf8, metalness: 0.8, roughness: 0.1}),
+            locked: new THREE.MeshStandardMaterial({color: 0x1e293b, transparent:true, opacity:0.8})
+        };
+
+        function createBaseTile(x, z, mat) {
+            const geo = new THREE.BoxGeometry(16, 1.5, 16);
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, -0.75, z);
+            mesh.receiveShadow = true;
+            return mesh;
+        }
+
+        function createLabel(x, z, keyCode) {
+            const lblContainer = document.getElementById('labels-container');
+            if (!lblContainer) return;
+            const div = document.createElement('div');
+            div.className = 'building-label';
+            div.setAttribute('data-i18n', keyCode);
+            div.innerText = t[currentLang][keyCode] || keyCode;
+            lblContainer.appendChild(div);
+            labelData.push({ el: div, pos: new THREE.Vector3(x, 1, z) });
+        }
+
+        function buildEntireScene() {
+            const spacing = 18;
+            const floorGeo = new THREE.PlaneGeometry(200, 200);
+            const floorMat = new THREE.MeshStandardMaterial({color: 0x0f172a});
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -2.1;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            buildFacility('forest', -spacing, -spacing, mats.tileForest, createForest);
+            buildFacility('logging', 0, -spacing, mats.tileLog, createLogging);
+            buildFacility('furniture', spacing, -spacing, mats.tileFurn, createFurniture);
+            buildFacility('transport', 0, 0, mats.tileRoad, createTransport);
+            buildFacility('drying', spacing, 0, mats.tileDry, createDrying);
+            buildFacility('dock', 0, spacing, mats.tileWater, createDock);
+            buildFacility('sawmill', spacing, spacing, mats.tileSaw, createSawmill);
+        }
+
+        function buildFacility(id, x, z, baseMat, builderFunc) {
+            const group = new THREE.Group();
+            group.position.set(x, 0, z);
+            group.add(createBaseTile(0, 0, baseMat));
+            
+            threeObjects.groups[id] = group;
+            scene.add(group);
+            
+            let labelId = id;
+            if (id === 'drying') labelId = 'factory';
+            if (id === 'furniture') labelId = 'supermarket';
+            createLabel(x, z + 7, `b_${labelId}`);
+
+            builderFunc(group, id);
+        }
+
+        function buildThreeJSFacility(id, unlocked) {
+            const group = threeObjects.groups[id];
+            if(!group) return;
+            while(group.children.length > 1) {
+                group.remove(group.children[1]);
+            }
+            if (id === 'drying') createDrying(group, id);
+            if (id === 'furniture') createFurniture(group, id);
+        }
+
+        // 1. Forest 3D (Ref: image_2c418e.png)
+        function createForest(group) {
+            const pos = [[-4, -4], [4, -2], [-1, 5]];
+            pos.forEach(p => {
+                const tGroup = new THREE.Group();
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2, 8), mats.woodDark);
+                trunk.position.y = 1; trunk.castShadow = true;
+                
+                const leaves = new THREE.Group();
+                const l1 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 1), mats.leaf); l1.position.y = 2.5;
+                const l2 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 1), mats.leaf); l2.position.set(0.8, 3, 0.5);
+                const l3 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 1), mats.leaf); l3.position.set(-0.8, 3, -0.5);
+                const l4 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4, 1), mats.leaf); l4.position.y = 4.2;
+                leaves.add(l1, l2, l3, l4);
+                leaves.children.forEach(c => { c.castShadow = true; c.receiveShadow = true; });
+                
+                tGroup.add(trunk, leaves);
+                tGroup.position.set(p[0], 0, p[1]);
+                group.add(tGroup);
+                threeObjects.trees.push(tGroup);
+            });
+            const rock1 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 0), mats.metal);
+            rock1.position.set(2, 0.5, 3); rock1.castShadow = true;
+            group.add(rock1);
+        }
+
+        // 2. Lumberjack 3D (Ref: image_2c3668.png)
+        function createLogging(group) {
+            const lj = new THREE.Group();
+            const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.5, 8), mats.jeansBlue); legL.position.set(-0.4, 0.75, 0);
+            const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.5, 8), mats.jeansBlue); legR.position.set(0.4, 0.75, 0);
+            legL.castShadow = true; legR.castShadow = true;
+            
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 1), mats.shirtRed); body.position.set(0, 2.6, 0);
+            body.castShadow = true;
+            
+            const headGrp = new THREE.Group(); headGrp.position.set(0, 4.2, 0);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), mats.skin); head.castShadow = true;
+            const beard = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.8, 1), mats.woodDark); beard.position.set(0, -0.2, 0.4); beard.castShadow = true;
+            const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.5, 16), mats.shirtRed); hat.position.set(0, 0.6, 0); hat.castShadow = true;
+            headGrp.add(head, beard, hat);
+
+            const armPivot = new THREE.Group(); armPivot.position.set(1.1, 3.2, 0);
+            const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1.8, 8), mats.shirtRed); armR.position.set(0, -0.9, 0); armR.castShadow = true;
+            const axeHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.5), mats.woodLight); axeHandle.position.set(0, -1.8, 0.8); axeHandle.rotation.x = Math.PI/2;
+            const axeBlade = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1, 1), mats.metal); axeBlade.position.set(0, -1.8, 1.7);
+            
+            armPivot.add(armR, axeHandle, axeBlade);
+            lj.add(legL, legR, body, headGrp, armPivot);
+            lj.scale.set(1.4, 1.4, 1.4);
+            group.add(lj);
+
+            threeObjects.hammer = armPivot;
+        }
+
+        // 3. Log Truck 3D (Ref: image_2c3d90.png)
+        function createTransport(group) {
+            const line = new THREE.Mesh(new THREE.PlaneGeometry(2, 16), new THREE.MeshBasicMaterial({color:0xd1d5db}));
+            line.rotation.x = -Math.PI/2; line.position.y = 0.05;
+            group.add(line);
+            
+            const tGroup = new THREE.Group();
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.6, 8), mats.truckRed); chassis.position.set(0, 1.3, -1);
+            const cab = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3, 2.5), mats.truckYellow); cab.position.set(0, 3.1, 1.75);
+            const hood = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.5, 2.5), mats.truckYellow); hood.position.set(0, 2.3, 4.25);
+            
+            for(let i=0; i<4; i++) {
+                const log = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 6.5, 12), mats.woodLight);
+                log.rotation.x = Math.PI/2;
+                log.position.set((i%2===0?-0.8:0.8), 2.2 + Math.floor(i/2)*1.2, -2);
+                tGroup.add(log);
+            }
+
+            const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.4, 16); wheelGeo.rotateZ(Math.PI/2);
+            const wheelMat = new THREE.MeshStandardMaterial({color: 0x111827});
+            [[-4, 4], [4, 4], [-4, -4], [4, -4]].forEach(pos => {
+                const w = new THREE.Mesh(wheelGeo, wheelMat);
+                w.position.set(pos[0]/2, 0.8, pos[1]/1.2);
+                tGroup.add(w);
+            });
+
+            tGroup.add(chassis, cab, hood);
+            group.add(tGroup);
+            threeObjects.truck = tGroup;
+        }
+
+        // 4. Sawmill 3D (Ref: image_2c3e81.png)
+        function createSawmill(group) {
+            const bldg = new THREE.Mesh(new THREE.BoxGeometry(10, 5, 6), mats.bldgRed); bldg.position.set(0, 2.5, -2);
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 3, 4), mats.metal); roof.rotation.y = Math.PI/4; roof.position.set(0, 6.5, -2);
+            const saw = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 0.4, 16), mats.metal); saw.rotation.z = Math.PI/2; saw.position.set(0, 2.5, 4);
+            group.add(bldg, roof, saw);
+            threeObjects.saw = saw;
+        }
+
+        // 5. Industrial Factory 3D (Ref: image_2c3a48.png)
+        function createDrying(group, id) {
+            if (!game.unlocks[id]) {
+                const lock = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 12), mats.locked);
+                lock.position.y = 4; group.add(lock);
+                return;
+            }
+            const bldg = new THREE.Mesh(new THREE.BoxGeometry(11, 5, 8), mats.bldgOrange); bldg.position.set(0, 2.5, 0);
+            
+            const chimney1 = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 6, 16), mats.metal); chimney1.position.set(-3, 6, -2);
+            const chimney2 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.2, 8, 16), mats.metal); chimney2.position.set(3, 7, -2);
+            
+            group.add(bldg, chimney1, chimney2);
+            threeObjects.smokeEmitter = [
+                new THREE.Vector3(-3, 9, -2),
+                new THREE.Vector3(3, 11, -2)
+            ];
+        }
+
+        // 6. Supermarket 3D (Ref: image_2c371e.png)
+        function createFurniture(group, id) {
+            if (!game.unlocks[id]) {
+                const lock = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 12), mats.locked);
+                lock.position.y = 5; group.add(lock);
+                return;
+            }
+            const bldg = new THREE.Mesh(new THREE.BoxGeometry(13, 5, 9), mats.bldgWhite); bldg.position.set(0, 2.5, -1);
+            const sign = new THREE.Mesh(new THREE.BoxGeometry(7, 1.5, 1.2), mats.shirtRed); sign.position.set(0, 4, 3.5);
+            const win1 = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 0.2), mats.glass); win1.position.set(-3.5, 1.5, 3.55);
+            const win2 = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 0.2), mats.glass); win2.position.set(3.5, 1.5, 3.55);
+            group.add(bldg, sign, win1, win2);
+        }
+
+        function createDock(group) {
+            const boat = new THREE.Group();
+            const hull = new THREE.Mesh(new THREE.BoxGeometry(8, 3, 14), new THREE.MeshStandardMaterial({color:0x1e3a8a})); hull.position.y = 1.5;
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 5), new THREE.MeshStandardMaterial({color:0xf8fafc})); cabin.position.set(0, 4.5, -2);
+            boat.add(hull, cabin);
+            group.add(boat);
+            threeObjects.boat = boat;
+        }
+
+        const clock = new THREE.Clock();
+
+        function animateThreeJS() {
+            requestAnimationFrame(animateThreeJS);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            if (controls) controls.update();
+
+            if (animState.forest) {
+                threeObjects.trees.forEach((t, i) => { t.rotation.z = Math.sin(time * 2 + i) * 0.05; });
+            }
+            if (animState.logging && threeObjects.hammer) {
+                threeObjects.hammer.rotation.x = (Math.sin(time * 8) - 1) * 0.6; 
+            } else if (threeObjects.hammer) {
+                threeObjects.hammer.rotation.x = 0;
+            }
+            if (animState.transport && threeObjects.truck) {
+                threeObjects.truck.position.z = Math.sin(time * 3) * 4;
+            }
+            if (animState.sawmill && threeObjects.saw) {
+                threeObjects.saw.rotation.x += 10 * delta;
+            }
+            if (animState.drying && threeObjects.smokeEmitter) {
+                if (Math.random() < 0.25) {
+                    const emitPos = threeObjects.smokeEmitter[Math.random() > 0.5 ? 0 : 1];
+                    const p = new THREE.Mesh(new THREE.IcosahedronGeometry(Math.random()*0.8 + 0.4, 1), mats.bldgWhite);
+                    p.position.copy(emitPos);
+                    p.userData = { life: 0, speed: Math.random()*2 + 2, drift: (Math.random()-0.5)*2 };
+                    scene.add(p);
+                    threeObjects.smoke.push(p);
+                }
+            }
+            for(let i = threeObjects.smoke.length - 1; i >= 0; i--) {
+                const p = threeObjects.smoke[i];
+                p.userData.life += delta;
+                p.position.y += p.userData.speed * delta;
+                p.position.x += p.userData.drift * delta;
+                p.scale.setScalar(1 + p.userData.life * 0.5);
+                if (p.userData.life > 2) { scene.remove(p); threeObjects.smoke.splice(i, 1); }
+            }
+            if (animState.dock && threeObjects.boat) {
+                threeObjects.boat.position.y = Math.sin(time * 2) * 0.3;
+                threeObjects.boat.rotation.z = Math.sin(time * 1.5) * 0.05;
+            }
+
+            if (renderer && scene && camera) renderer.render(scene, camera);
+            updateLabels();
+        }
+
+        function updateLabels() {
+            const container = document.getElementById('three-container');
+            if (!container) return;
+            const halfW = container.clientWidth / 2;
+            const halfH = container.clientHeight / 2;
+
+            labelData.forEach(l => {
+                const vec = l.pos.clone();
+                vec.project(camera);
+                if (vec.z > 1) { l.el.style.opacity = '0'; return; }
+                const x = (vec.x * halfW) + halfW;
+                const y = -(vec.y * halfH) + halfH;
+                l.el.style.left = `${x}px`;
+                l.el.style.top = `${y}px`;
+                l.el.style.opacity = '1';
+            });
+        }
+        
+        function updateLabelsText() {
+            labelData.forEach(l => {
+                const key = l.el.getAttribute('data-i18n');
+                if (t[currentLang][key]) l.el.innerText = t[currentLang][key];
+            });
+        }
+
         function spawnFloatingCash(amount) {
-            const dock = document.getElementById('bldg-dock');
-            if (!dock) return;
+            const main = document.getElementById('game-main');
+            if (!main) return;
             const el = document.createElement('div');
-            el.className = 'float-cash';
+            el.className = 'float-cash font-mono';
             el.innerText = `+$${Math.floor(amount)}`;
-            dock.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
+            const dockPos = new THREE.Vector3(0, 5, 18);
+            if (camera) {
+                dockPos.project(camera);
+                const cw = main.clientWidth, ch = main.clientHeight;
+                if (dockPos.z <= 1) {
+                    el.style.left = `${(dockPos.x * 0.5 + 0.5) * cw}px`;
+                    el.style.top = `${(-dockPos.y * 0.5 + 0.5) * ch}px`;
+                    main.appendChild(el);
+                    setTimeout(() => el.remove(), 1000);
+                }
+            }
         }
 
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            btnElement.classList.add('active');
-        }
-
-        initStartScreen();
+        window.onload = () => {
+            applyLanguage();
+            initThreeJS();
+        };
     </script>
 </body>
 </html>
