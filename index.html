@@ -2,15 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Industry Lumber Idle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --ui-bg: #0f172a;
             --panel-bg: #1e293b;
             --accent: #10b981;
+        }
+
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -25,19 +30,27 @@
             font-family: 'Press Start 2P', cursive;
         }
 
-        /* Dashboard UI Elements */
         .panel {
             background-color: var(--panel-bg);
             border: 2px solid #334155;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-touch {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease-in-out;
         }
 
         .btn-upgrade {
+            min-height: 52px;
             transition: all 0.1s;
         }
         .btn-upgrade:active:not(:disabled) {
-            transform: scale(0.98);
+            transform: scale(0.97);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
         .btn-upgrade:disabled {
@@ -48,48 +61,63 @@
 
         /* Isometric Grid System */
         .iso-container {
-            perspective: 1200px;
+            perspective: 1000px;
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: radial-gradient(circle, #334155 0%, var(--ui-bg) 70%);
+            background: radial-gradient(circle, #334155 0%, var(--ui-bg) 75%);
         }
 
         .iso-grid {
-            transform: rotateX(60deg) rotateZ(-45deg);
+            transform: rotateX(60deg) rotateZ(-45deg) scale(0.75);
             transform-style: preserve-3d;
             display: grid;
             grid-template-columns: repeat(3, 140px);
             grid-template-rows: repeat(3, 140px);
-            gap: 20px;
+            gap: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .iso-grid {
+                transform: rotateX(60deg) rotateZ(-45deg) scale(0.9);
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .iso-grid {
+                transform: rotateX(60deg) rotateZ(-45deg) scale(1);
+            }
         }
 
         /* Isometric Building Blocks */
         .iso-block {
             position: relative;
-            width: 140px;
-            height: 140px;
+            width: 100%;
+            height: 100%;
             background-color: #475569;
             transform-style: preserve-3d;
-            border: 2px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
         }
 
-        /* 3D Depth effect */
         .iso-block::before {
-            content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 20px;
-            background: rgba(0,0,0,0.4); transform: rotateX(-90deg); transform-origin: top;
+            content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 18px;
+            background: rgba(0,0,0,0.45); transform: rotateX(-90deg); transform-origin: top;
+            border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;
         }
         .iso-block::after {
-            content: ''; position: absolute; top: 0; left: 100%; width: 20px; height: 100%;
-            background: rgba(0,0,0,0.2); transform: rotateY(90deg); transform-origin: left;
+            content: ''; position: absolute; top: 0; left: 100%; width: 18px; height: 100%;
+            background: rgba(0,0,0,0.25); transform: rotateY(90deg); transform-origin: left;
+            border-top-right-radius: 4px; border-bottom-right-radius: 4px;
         }
 
-        /* Specific Buildings */
+        /* Building Backgrounds */
         .bg-forest { background-color: #065f46; }
         .bg-logging { background-color: #047857; }
         .bg-transport { background-color: #374151; }
@@ -99,91 +127,157 @@
         .bg-dock { background-color: #1d4ed8; }
         
         .locked-building {
-            opacity: 0.2;
+            opacity: 0.25;
             background-color: #1e293b;
         }
 
-        /* Content facing the camera */
         .iso-content {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg);
             display: flex;
-            flex-col;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
             pointer-events: none;
+            width: 100%;
+            height: 100%;
         }
 
-        .iso-icon {
-            font-size: 3rem;
-            filter: drop-shadow(0 4px 2px rgba(0,0,0,0.5));
+        /* CSS Animations */
+        @keyframes sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(6deg); }
         }
 
-        /* Animations */
-        @keyframes bounce-process {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        .anim-active .iso-icon {
-            animation: bounce-process 0.5s infinite ease-in-out;
+        @keyframes chop {
+            0%, 100% { transform: rotate(0deg); }
+            40% { transform: rotate(-50deg); }
+            50% { transform: rotate(10deg); }
         }
 
-        @keyframes floating-money {
+        @keyframes spin-saw {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes smoke-float {
+            0% { opacity: 0.8; transform: translateY(0) scale(0.6); }
+            100% { opacity: 0; transform: translateY(-35px) scale(1.5); }
+        }
+
+        @keyframes boat-bob {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(1.5deg); }
+        }
+
+        @keyframes belt-flow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -20; }
+        }
+
+        @keyframes spark-pop {
+            0%, 100% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes hammer-work {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-35deg); }
+        }
+
+        @keyframes float-cash-anim {
             0% { opacity: 1; transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg) translateY(0); }
-            100% { opacity: 0; transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg) translateY(-80px); }
+            100% { opacity: 0; transform: translate(-50%, -50%) rotateZ(45deg) rotateX(-60deg) translateY(-85px); }
         }
+
+        .anim-tree { animation: sway 3s infinite ease-in-out; transform-origin: bottom center; }
+        .anim-axe { animation: chop 1.4s infinite ease-in-out; transform-origin: bottom right; }
+        .anim-sawblade { animation: spin-saw 0.6s infinite linear; transform-origin: center; }
+        .anim-smoke1 { animation: smoke-float 2.2s infinite linear; }
+        .anim-smoke2 { animation: smoke-float 2.2s infinite linear 1.1s; }
+        .anim-boat { animation: boat-bob 3s infinite ease-in-out; }
+        .anim-belt { stroke-dasharray: 6 4; animation: belt-flow 0.8s infinite linear; }
+        .anim-spark { animation: spark-pop 0.5s infinite ease-in-out; }
+        .anim-hammer { animation: hammer-work 1.2s infinite ease-in-out; transform-origin: bottom right; }
+
         .float-cash {
             position: absolute;
             top: 50%; left: 50%;
             color: #4ade80;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 800;
             text-shadow: 2px 2px 0 #000;
-            animation: floating-money 1s forwards;
+            animation: float-cash-anim 1s forwards;
             pointer-events: none;
             z-index: 50;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--ui-bg); }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         
         .tab-btn.active {
             background-color: var(--panel-bg);
-            border-bottom-color: transparent;
+            border-bottom: 3px solid #38bdf8;
             color: #38bdf8;
         }
 
-        /* Start Screen */
         #start-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(8px);
             z-index: 999; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
             padding: 20px;
+            overflow-y: auto;
         }
         .how-to-play {
             background: rgba(0,0,0,0.5); border: 1px solid #334155;
-            padding: 20px; border-radius: 8px; text-align: left;
-            margin: 20px 0; max-width: 500px; font-size: 0.9rem;
+            padding: 16px; border-radius: 10px; text-align: left;
+            margin: 16px 0; max-width: 520px; font-size: 0.875rem;
             line-height: 1.6; color: #cbd5e1;
         }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
+    <!-- Redeem Code Modal -->
+    <div id="redeem-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+        <div class="panel p-6 max-w-sm w-full text-center border-sky-500">
+            <h2 class="text-xl font-bold text-sky-400 mb-2 flex items-center justify-center gap-2">
+                <span>🎁</span> <span data-i18n="redeemTitle">Redeem Gift Code</span>
+            </h2>
+            <p class="text-xs text-slate-300 mb-4" data-i18n="redeemDesc">Enter your promo code below to claim rewards.</p>
+            
+            <input type="text" id="code-input" placeholder="LUMBER5K01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-center text-emerald-400 font-mono text-lg uppercase font-bold tracking-wider mb-2 focus:outline-none focus:border-emerald-500">
+            <div id="code-error" class="text-xs text-red-400 font-semibold mb-3 hidden"></div>
+
+            <div class="flex gap-2 justify-center mt-2">
+                <button onclick="closeRedeemModal()" class="btn-touch bg-slate-700 hover:bg-slate-600 px-4 py-2.5 rounded-lg font-bold flex-1 text-xs" data-i18n="cancelBtn">Cancel</button>
+                <button onclick="submitGiftCode()" class="btn-touch bg-emerald-600 hover:bg-emerald-500 px-4 py-2.5 rounded-lg font-bold text-white flex-1 text-xs" data-i18n="redeemConfirm">Claim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reward Success Popup Modal -->
+    <div id="reward-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-[1010] flex items-center justify-center p-4">
+        <div class="panel p-6 max-w-sm w-full text-center border-emerald-500 animate-bounce-once">
+            <div class="text-5xl mb-2">🎉</div>
+            <h2 class="text-xl font-extrabold text-emerald-400 mb-2" data-i18n="redeemSuccessTitle">Congratulations!</h2>
+            <p class="text-sm text-slate-200 mb-5 leading-relaxed" id="reward-message" data-i18n="redeemSuccessMsg">You received $5,000 cash reward!</p>
+            <button onclick="document.getElementById('reward-modal').classList.add('hidden')" class="btn-touch bg-emerald-600 hover:bg-emerald-500 w-full py-3 rounded-lg font-bold text-white text-sm shadow-lg" data-i18n="closeBtn">Awesome!</button>
+        </div>
+    </div>
+
     <!-- Reset Confirm Modal -->
     <div id="reset-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
         <div class="panel p-6 max-w-sm w-full text-center border-red-700">
-            <h2 class="text-xl font-bold text-red-500 mb-4" data-i18n="resetConfirmTitle">Reset Progress?</h2>
+            <h2 class="text-xl font-bold text-red-500 mb-3" data-i18n="resetConfirmTitle">Reset Progress?</h2>
             <p class="text-slate-300 mb-6 text-sm" data-i18n="resetConfirmText">This will erase all your game data. Are you sure?</p>
-            <div class="flex gap-4 justify-center">
-                <button onclick="document.getElementById('reset-modal').classList.add('hidden')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-bold" data-i18n="cancelBtn">Cancel</button>
-                <button onclick="confirmReset()" class="bg-red-700 hover:bg-red-600 px-4 py-2 rounded font-bold text-white" data-i18n="resetBtn">Reset</button>
+            <div class="flex gap-3 justify-center">
+                <button onclick="document.getElementById('reset-modal').classList.add('hidden')" class="btn-touch bg-slate-700 hover:bg-slate-600 px-5 py-2.5 rounded-lg font-bold flex-1" data-i18n="cancelBtn">Cancel</button>
+                <button onclick="confirmReset()" class="btn-touch bg-red-700 hover:bg-red-600 px-5 py-2.5 rounded-lg font-bold text-white flex-1" data-i18n="resetBtn">Reset</button>
             </div>
         </div>
     </div>
@@ -191,11 +285,11 @@
     <!-- New Game Confirm Modal -->
     <div id="new-game-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
         <div class="panel p-6 max-w-sm w-full text-center border-amber-600">
-            <h2 class="text-xl font-bold text-amber-400 mb-4" data-i18n="newGameConfirmTitle">Start New Game?</h2>
+            <h2 class="text-xl font-bold text-amber-400 mb-3" data-i18n="newGameConfirmTitle">Start New Game?</h2>
             <p class="text-slate-300 mb-6 text-sm" data-i18n="newGameConfirmText">All saved progress will be erased. Are you sure?</p>
-            <div class="flex gap-4 justify-center">
-                <button onclick="document.getElementById('new-game-modal').classList.add('hidden')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-bold" data-i18n="cancelBtn">Cancel</button>
-                <button onclick="confirmNewGame()" class="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded font-bold text-white" data-i18n="newGameBtn">New Game</button>
+            <div class="flex gap-3 justify-center">
+                <button onclick="document.getElementById('new-game-modal').classList.add('hidden')" class="btn-touch bg-slate-700 hover:bg-slate-600 px-5 py-2.5 rounded-lg font-bold flex-1" data-i18n="cancelBtn">Cancel</button>
+                <button onclick="confirmNewGame()" class="btn-touch bg-amber-600 hover:bg-amber-500 px-5 py-2.5 rounded-lg font-bold text-white flex-1" data-i18n="newGameBtn">New Game</button>
             </div>
         </div>
     </div>
@@ -204,83 +298,96 @@
     <div id="offline-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
         <div class="panel p-6 max-w-sm w-full text-center border-emerald-600 border-2">
             <h2 class="text-xl font-bold text-emerald-400 mb-2" data-i18n="offlineTitle">Offline Earnings</h2>
-            <div class="bg-black/50 p-4 rounded mb-6 text-sm text-slate-300">
+            <div class="bg-black/50 p-4 rounded-lg mb-6 text-sm text-slate-300">
                 <div class="flex justify-between mb-2">
                     <span data-i18n="offlineTime">Time Away:</span>
-                    <span id="offline-time" class="font-mono text-white">0s</span>
+                    <span id="offline-time" class="font-mono text-white font-bold">0s</span>
                 </div>
                 <div class="flex justify-between border-t border-slate-700 pt-2 mt-2">
                     <span data-i18n="offlineEarned">Earned (50%):</span>
                     <span id="offline-earned" class="font-mono text-emerald-400 font-bold">+$0</span>
                 </div>
             </div>
-            <button onclick="collectOfflineEarnings()" class="bg-emerald-600 hover:bg-emerald-500 w-full py-3 rounded font-bold text-white shadow-lg" data-i18n="offlineBtn">Collect</button>
+            <button onclick="collectOfflineEarnings()" class="btn-touch bg-emerald-600 hover:bg-emerald-500 w-full py-3.5 rounded-lg font-bold text-white shadow-lg" data-i18n="offlineBtn">Collect</button>
         </div>
     </div>
 
     <!-- Start Screen -->
     <div id="start-screen">
-        <h1 class="pixel-font text-2xl lg:text-4xl text-emerald-400 mb-4" data-i18n="title">TIMBER CORP IDLE</h1>
-        <p class="max-w-xl text-slate-300 mb-2" data-i18n="lore">Grow from a small logging camp into a global timber empire! Manage your supply chain from harvesting, transporting, processing, to exporting.</p>
+        <h1 class="pixel-font text-2xl lg:text-4xl text-emerald-400 mb-3" data-i18n="title">TIMBER CORP IDLE</h1>
+        <p class="max-w-xl text-slate-300 mb-2 text-sm md:text-base px-2" data-i18n="lore">Grow from a small logging camp into a global timber empire! Manage your supply chain from harvesting, transporting, processing, to exporting.</p>
         <div class="how-to-play" data-i18n="howToPlay">
             How to Play:<br>1. Collect passive income from your automated export line.<br>2. Upgrade 'Logging' and 'Transport' to feed your sawmills.<br>3. 'Research' new tech to unlock high-value products.<br>4. Expand to global 'Export' markets for huge income multipliers.
         </div>
-        <div id="start-buttons" class="w-full max-w-md flex justify-center mt-2">
+        <div id="start-buttons" class="w-full max-w-md flex justify-center mt-2 px-2">
             <!-- Dynamically populated buttons -->
         </div>
     </div>
 
     <!-- Top Dashboard Header -->
-    <header class="h-16 lg:h-20 bg-slate-900 border-b border-slate-700 flex justify-between items-center px-6 shadow-md z-10">
-        <div class="flex items-center gap-4">
-            <h1 class="pixel-font text-sm lg:text-lg text-emerald-400">TIMBER CORP</h1>
-            <div class="hidden lg:flex bg-slate-800 px-3 py-1 rounded text-xs text-slate-400">
-                <span data-i18n="region">Region:</span> <span id="hdr-region" class="ml-1 text-white font-bold">🇹🇭 Domestic</span>
+    <header class="bg-slate-900 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center px-4 py-2 sm:py-3 shadow-md z-30 gap-2 shrink-0">
+        <!-- Brand & Settings Dropdown -->
+        <div class="flex items-center justify-between w-full sm:w-auto gap-2">
+            <div class="flex items-center gap-2">
+                <h1 class="pixel-font text-xs sm:text-base text-emerald-400 whitespace-nowrap">TIMBER CORP</h1>
+                <span id="hdr-region" class="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-white font-bold border border-slate-700 whitespace-nowrap">🇹🇭 Domestic</span>
             </div>
-        </div>
-        
-        <div class="flex gap-4 lg:gap-6 items-center">
-            <!-- Save Button -->
-            <button onclick="saveGame(false)" class="bg-blue-900/80 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs border border-blue-800 transition-colors" data-i18n="saveBtn">Save</button>
-            <button onclick="exportSave()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-1 px-3 rounded text-xs border border-slate-600">Export</button>
-            <label class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-1 px-3 rounded text-xs border border-slate-600 cursor-pointer">Import
-                <input type="file" accept=".json,application/json" onchange="importSaveFile(this)" class="hidden">
-            </label>
-            <!-- Reset Button -->
-            <button onclick="document.getElementById('reset-modal').classList.remove('hidden')" class="bg-red-900/80 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-xs border border-red-800 transition-colors" data-i18n="resetBtn">Reset</button>
-            <!-- Language Toggle -->
-            <button onclick="toggleLang()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-1 px-3 rounded text-xs border border-slate-500 transition-colors" id="lang-toggle">EN</button>
 
-            <!-- Income Rate -->
-            <div class="text-right hidden sm:block">
-                <div class="text-xs text-slate-400" data-i18n="rev">Revenue / Sec</div>
-                <div class="text-sm font-bold text-emerald-300" id="display-income-rate">+$0.00</div>
-            </div>
-            <!-- Premium Currency -->
-            <div class="panel px-4 py-2 hidden md:flex items-center gap-2 border-amber-600">
-                <span class="text-xl">📜</span>
-                <div>
-                    <div class="text-[10px] text-amber-500 font-bold uppercase tracking-wider" data-i18n="licenses">Licenses</div>
-                    <div class="pixel-font text-sm text-white" id="display-premium">0</div>
+            <div class="flex items-center gap-2 relative">
+                <!-- Dropdown Menu Trigger -->
+                <button onclick="toggleDropdown(event)" class="btn-touch h-9 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3 text-xs rounded-lg border border-slate-600 flex items-center gap-1.5 shadow">
+                    <span>⚙️</span> <span data-i18n="menuBtn">Menu</span> <span>▼</span>
+                </button>
+
+                <!-- Language Toggle -->
+                <button onclick="toggleLang()" class="btn-touch h-9 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 text-xs rounded-lg border border-slate-600" id="lang-toggle">EN</button>
+
+                <!-- Hidden Settings Dropdown Menu -->
+                <div id="settings-dropdown" class="hidden absolute right-0 top-11 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 divide-y divide-slate-700/60">
+                    <button onclick="triggerSaveFromMenu()" class="w-full text-left px-4 py-3 text-xs font-semibold text-slate-200 hover:bg-slate-700/80 flex items-center gap-2.5">
+                        <span>💾</span> <span data-i18n="menuSave">Save Game</span>
+                    </button>
+                    <button onclick="openRedeemModal()" class="w-full text-left px-4 py-3 text-xs font-semibold text-sky-400 hover:bg-slate-700/80 flex items-center gap-2.5">
+                        <span>🎁</span> <span data-i18n="menuRedeem">Redeem Code</span>
+                    </button>
+                    <button onclick="triggerResetFromMenu()" class="w-full text-left px-4 py-3 text-xs font-semibold text-red-400 hover:bg-slate-700/80 flex items-center gap-2.5">
+                        <span>🗑️</span> <span data-i18n="menuReset">Reset Progress</span>
+                    </button>
                 </div>
             </div>
-            <!-- Main Currency -->
-            <div class="panel px-4 py-2 flex items-center gap-2 border-emerald-600">
-                <span class="text-xl text-emerald-500">$</span>
+        </div>
+
+        <!-- Currencies & Income Stats -->
+        <div class="flex w-full sm:w-auto justify-between sm:justify-end gap-2 items-center text-xs">
+            <div class="text-left sm:text-right bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 flex-1 sm:flex-initial">
+                <div class="text-[10px] text-slate-400 leading-none" data-i18n="rev">Revenue / Sec</div>
+                <div class="text-xs font-bold text-emerald-300" id="display-income-rate">+$0.00</div>
+            </div>
+
+            <div class="panel px-3 py-1 flex items-center gap-1.5 border-amber-600 shrink-0">
+                <span class="text-base">📜</span>
                 <div>
-                    <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider" data-i18n="capital">Capital</div>
-                    <div class="pixel-font text-sm lg:text-base text-white" id="display-money">0</div>
+                    <div class="text-[9px] text-amber-500 font-bold uppercase leading-none" data-i18n="licenses">Licenses</div>
+                    <div class="pixel-font text-xs text-white" id="display-premium">0</div>
+                </div>
+            </div>
+
+            <div class="panel px-3 py-1 flex items-center gap-1.5 border-emerald-600 shrink-0">
+                <span class="text-base text-emerald-500 font-bold">$</span>
+                <div>
+                    <div class="text-[9px] text-emerald-500 font-bold uppercase leading-none" data-i18n="capital">Capital</div>
+                    <div class="pixel-font text-xs sm:text-sm text-white" id="display-money">0</div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Game View (Isometric Middle Area) -->
-    <main class="flex-1 relative overflow-hidden">
-        <!-- Floating Status (Top Left over Isometric view) -->
-        <div class="absolute top-4 left-4 z-10 panel p-3 bg-slate-800/80 backdrop-blur">
-            <h3 class="text-xs font-bold text-slate-300 border-b border-slate-600 pb-1 mb-2" data-i18n="prodChain">Production Chain</h3>
-            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+    <!-- Main Game View (Animated Isometric Area) -->
+    <main class="flex-1 relative overflow-hidden min-h-[240px]" onclick="closeDropdownIfOpen()">
+        <!-- Floating Production Chain Status -->
+        <div class="absolute top-2 left-2 z-10 panel p-2 bg-slate-900/90 backdrop-blur max-w-[200px] border-slate-700">
+            <h3 class="text-[10px] font-bold text-slate-300 border-b border-slate-700 pb-1 mb-1" data-i18n="prodChain">Production Chain</h3>
+            <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                 <span class="text-slate-400" data-i18n="raw">Raw Wood:</span> <span class="text-right text-emerald-400 font-mono" id="stat-raw">0/s</span>
                 <span class="text-slate-400" data-i18n="lumber">Lumber:</span> <span class="text-right text-amber-400 font-mono" id="stat-lumber">0/s</span>
                 <span class="text-slate-400" data-i18n="dry">Dry Lumber:</span> <span class="text-right text-orange-400 font-mono" id="stat-dry">0/s</span>
@@ -290,53 +397,114 @@
 
         <div class="iso-container" id="iso-world">
             <div class="iso-grid">
-                <!-- Row 1 -->
+                <!-- Row 1: Forest / Logging / Furniture -->
                 <div class="iso-block bg-forest" id="bldg-forest">
                     <div class="iso-content">
-                        <div class="iso-icon">🌲</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded" data-i18n="b_forest">Forest</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <g class="anim-tree">
+                                <polygon points="20,44 10,44 15,32 12,32 17,20 14,20 20,10 26,20 23,20 28,32 25,32 30,44" fill="#047857"/>
+                                <rect x="18" y="44" width="4" height="8" fill="#78350f"/>
+                            </g>
+                            <g class="anim-tree" style="animation-delay: 0.5s;">
+                                <polygon points="44,48 34,48 39,36 36,36 41,24 38,24 44,14 50,24 47,24 52,36 49,36 54,48" fill="#10b981"/>
+                                <rect x="42" y="48" width="4" height="8" fill="#78350f"/>
+                            </g>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-emerald-200" data-i18n="b_forest">Forest</div>
                     </div>
                 </div>
+
                 <div class="iso-block bg-logging" id="bldg-logging">
                     <div class="iso-content">
-                        <div class="iso-icon">🪓</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded" data-i18n="b_logging">Logging</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <circle cx="32" cy="22" r="6" fill="#fde047"/>
+                            <rect x="28" y="28" width="8" height="14" rx="2" fill="#ef4444"/>
+                            <g class="anim-axe">
+                                <rect x="34" y="28" width="16" height="4" rx="1" fill="#78350f"/>
+                                <polygon points="48,24 54,28 48,32" fill="#94a3b8"/>
+                            </g>
+                            <rect x="16" y="46" width="32" height="8" rx="3" fill="#b45309"/>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-emerald-200" data-i18n="b_logging">Logging</div>
                     </div>
                 </div>
+
                 <div class="iso-block bg-furniture locked-building" id="bldg-furniture">
                     <div class="iso-content">
-                        <div class="iso-icon">🪑</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded text-slate-300" data-i18n="b_factory">Factory</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <rect x="12" y="38" width="40" height="6" fill="#475569"/>
+                            <path d="M 22 38 L 22 24 L 32 24 L 32 38 M 22 30 L 32 30" stroke="#f59e0b" stroke-width="3" fill="none"/>
+                            <g class="anim-hammer">
+                                <rect x="36" y="12" width="6" height="16" fill="#94a3b8"/>
+                                <rect x="32" y="10" width="14" height="6" rx="1" fill="#ef4444"/>
+                            </g>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-300" data-i18n="b_factory">Factory</div>
                     </div>
                 </div>
 
-                <!-- Row 2 -->
+                <!-- Row 2: Empty / Transport / Drying -->
                 <div style="visibility: hidden;"></div>
+
                 <div class="iso-block bg-transport" id="bldg-transport">
                     <div class="iso-content">
-                        <div class="iso-icon">🚚</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded" data-i18n="b_transport">Transport</div>
-                    </div>
-                </div>
-                <div class="iso-block bg-drying locked-building" id="bldg-drying">
-                    <div class="iso-content">
-                        <div class="iso-icon">♨️</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded text-slate-300" data-i18n="b_drying">Drying</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <line x1="8" y1="46" x2="56" y2="46" stroke="#94a3b8" stroke-width="4" class="anim-belt"/>
+                            <g>
+                                <rect x="16" y="24" width="22" height="16" fill="#3b82f6"/>
+                                <rect x="38" y="28" width="10" height="12" fill="#60a5fa"/>
+                                <circle cx="22" cy="42" r="4" fill="#1e293b"/>
+                                <circle cx="42" cy="42" r="4" fill="#1e293b"/>
+                                <rect x="18" y="18" width="18" height="5" rx="2" fill="#b45309"/>
+                            </g>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-200" data-i18n="b_transport">Transport</div>
                     </div>
                 </div>
 
-                <!-- Row 3 -->
-                <div style="visibility: hidden;"></div>
-                <div class="iso-block bg-dock relative" id="bldg-dock">
+                <div class="iso-block bg-drying locked-building" id="bldg-drying">
                     <div class="iso-content">
-                        <div class="iso-icon">🚢</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded text-blue-200" data-i18n="b_export">Export</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <rect x="22" y="24" width="8" height="22" fill="#475569"/>
+                            <rect x="38" y="20" width="8" height="26" fill="#334155"/>
+                            <rect x="14" y="34" width="36" height="18" fill="#ea580c"/>
+                            <circle cx="26" cy="18" r="4" fill="#cbd5e1" class="anim-smoke1"/>
+                            <circle cx="42" cy="14" r="5" fill="#e2e8f0" class="anim-smoke2"/>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-slate-300" data-i18n="b_drying">Drying</div>
                     </div>
                 </div>
+
+                <!-- Row 3: Empty / Dock / Sawmill -->
+                <div style="visibility: hidden;"></div>
+
+                <div class="iso-block bg-dock relative" id="bldg-dock">
+                    <div class="iso-content">
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <path d="M 4 48 Q 16 44 28 48 T 52 48" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                            <g class="anim-boat">
+                                <path d="M 12 34 L 52 34 L 44 46 L 20 46 Z" fill="#1e3a8a"/>
+                                <rect x="20" y="22" width="14" height="12" fill="#f8fafc"/>
+                                <rect x="34" y="24" width="10" height="10" fill="#10b981"/>
+                            </g>
+                            <circle cx="48" cy="16" r="3" fill="#fbbf24" class="anim-spark"/>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-blue-200" data-i18n="b_export">Export</div>
+                    </div>
+                </div>
+
                 <div class="iso-block bg-sawmill" id="bldg-sawmill">
                     <div class="iso-content">
-                        <div class="iso-icon">🏭</div>
-                        <div class="text-[10px] mt-2 font-bold bg-black/50 px-2 py-1 rounded" data-i18n="b_sawmill">Sawmill</div>
+                        <svg class="w-16 h-16" viewBox="0 0 64 64">
+                            <rect x="12" y="30" width="40" height="20" fill="#b45309"/>
+                            <g class="anim-sawblade" style="transform-origin: 32px 30px;">
+                                <circle cx="32" cy="30" r="10" fill="#94a3b8"/>
+                                <line x1="22" y1="30" x2="42" y2="30" stroke="#f8fafc" stroke-width="2"/>
+                                <line x1="32" y1="20" x2="32" y2="40" stroke="#f8fafc" stroke-width="2"/>
+                            </g>
+                            <circle cx="40" cy="24" r="2" fill="#f59e0b" class="anim-spark"/>
+                        </svg>
+                        <div class="text-[10px] mt-1 font-bold bg-black/60 px-2 py-0.5 rounded text-amber-200" data-i18n="b_sawmill">Sawmill</div>
                     </div>
                 </div>
             </div>
@@ -344,174 +512,198 @@
     </main>
 
     <!-- Bottom Dashboard Tabs -->
-    <footer class="h-[40vh] min-h-[300px] bg-slate-900 border-t border-slate-700 flex flex-col z-20">
-        <!-- Tab Navigation -->
-        <div class="flex bg-slate-800 px-4 pt-2 gap-2 border-b border-slate-700 overflow-x-auto">
-            <button class="tab-btn active px-6 py-3 rounded-t-lg font-bold text-sm text-slate-400 border border-transparent border-b-0 hover:text-white" onclick="switchTab('upgrades', this)" data-i18n="t_upg">⚙️ UPGRADES</button>
-            <button class="tab-btn px-6 py-3 rounded-t-lg font-bold text-sm text-slate-400 border border-transparent border-b-0 hover:text-white" onclick="switchTab('research', this)" data-i18n="t_res">🔬 RESEARCH</button>
-            <button class="tab-btn px-6 py-3 rounded-t-lg font-bold text-sm text-slate-400 border border-transparent border-b-0 hover:text-white" onclick="switchTab('export', this)" data-i18n="t_exp">🌍 EXPORT</button>
-            <button class="tab-btn px-6 py-3 rounded-t-lg font-bold text-sm text-slate-400 border border-transparent border-b-0 hover:text-white" onclick="switchTab('managers', this)" data-i18n="t_man">👔 MANAGERS</button>
+    <footer class="h-[46vh] sm:h-[40vh] min-h-[290px] bg-slate-900 border-t border-slate-700 flex flex-col z-20 shrink-0" onclick="closeDropdownIfOpen()">
+        <div class="flex bg-slate-800 px-2 pt-1.5 gap-1.5 border-b border-slate-700 overflow-x-auto shrink-0">
+            <button class="tab-btn btn-touch active px-4 py-2.5 rounded-t-lg font-bold text-xs sm:text-sm text-slate-400 border-b-2 border-transparent hover:text-white flex-1 whitespace-nowrap" onclick="switchTab('upgrades', this)" data-i18n="t_upg">⚙️ UPGRADES</button>
+            <button class="tab-btn btn-touch px-4 py-2.5 rounded-t-lg font-bold text-xs sm:text-sm text-slate-400 border-b-2 border-transparent hover:text-white flex-1 whitespace-nowrap" onclick="switchTab('research', this)" data-i18n="t_res">🔬 RESEARCH</button>
+            <button class="tab-btn btn-touch px-4 py-2.5 rounded-t-lg font-bold text-xs sm:text-sm text-slate-400 border-b-2 border-transparent hover:text-white flex-1 whitespace-nowrap" onclick="switchTab('export', this)" data-i18n="t_exp">🌍 EXPORT</button>
+            <button class="tab-btn btn-touch px-4 py-2.5 rounded-t-lg font-bold text-xs sm:text-sm text-slate-400 border-b-2 border-transparent hover:text-white flex-1 whitespace-nowrap" onclick="switchTab('managers', this)" data-i18n="t_man">👔 MANAGERS</button>
         </div>
 
-        <!-- Tab Contents -->
-        <div class="flex-1 overflow-y-auto p-4 bg-slate-900">
+        <div class="flex-1 overflow-y-auto p-3 bg-slate-900">
             
             <!-- UPGRADES TAB -->
-            <div id="tab-upgrades" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div id="tab-upgrades" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <!-- Logging -->
-                <div class="panel p-4 flex flex-col justify-between">
+                <div class="panel p-3.5 flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-emerald-400" data-i18n="u_log_title">🪓 Logging Team</h4>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded">Lv.<span id="lvl-logging">1</span></span>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <h4 class="font-bold text-emerald-400 text-sm" data-i18n="u_log_title">🪓 Logging Team</h4>
+                            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-logging">1</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="u_log_desc">Increases Raw Wood generation in the forest.</p>
-                        <div class="text-sm mb-4 bg-black/30 p-2 rounded">
-                            <span data-i18n="yield">Yield:</span> <span id="eff-logging" class="text-white font-mono">1</span>/s <span class="text-emerald-500 text-xs ml-1">➔ <span id="next-eff-logging">2</span>/s</span>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_log_desc">Increases Raw Wood generation in the forest.</p>
+                        <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
+                            <span data-i18n="yield">Yield:</span> <span id="eff-logging" class="text-white font-mono font-bold">1</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-logging">2</span>/s</span>
                         </div>
                     </div>
-                    <button class="btn-upgrade bg-emerald-700 hover:bg-emerald-600 w-full py-3 rounded font-bold" id="btn-upg-logging" onclick="buyUpgrade('logging')">
+                    <button class="btn-upgrade bg-emerald-700 hover:bg-emerald-600 w-full rounded-lg font-bold text-sm text-white shadow" id="btn-upg-logging" onclick="buyUpgrade('logging')">
                         Upgrade: $10
                     </button>
                 </div>
 
                 <!-- Transport -->
-                <div class="panel p-4 flex flex-col justify-between">
+                <div class="panel p-3.5 flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-slate-300" data-i18n="u_trans_title">🚚 Truck Fleet</h4>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded">Lv.<span id="lvl-transport">1</span></span>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <h4 class="font-bold text-slate-200 text-sm" data-i18n="u_trans_title">🚚 Truck Fleet</h4>
+                            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-transport">1</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="u_trans_desc">Moves Raw Wood to processing facilities.</p>
-                        <div class="text-sm mb-4 bg-black/30 p-2 rounded">
-                            <span data-i18n="cap">Capacity:</span> <span id="eff-transport" class="text-white font-mono">1</span>/s <span class="text-emerald-500 text-xs ml-1">➔ <span id="next-eff-transport">2</span>/s</span>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_trans_desc">Moves Raw Wood to processing facilities.</p>
+                        <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
+                            <span data-i18n="cap">Capacity:</span> <span id="eff-transport" class="text-white font-mono font-bold">1</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-transport">2</span>/s</span>
                         </div>
                     </div>
-                    <button class="btn-upgrade bg-slate-600 hover:bg-slate-500 w-full py-3 rounded font-bold" id="btn-upg-transport" onclick="buyUpgrade('transport')">
+                    <button class="btn-upgrade bg-slate-600 hover:bg-slate-500 w-full rounded-lg font-bold text-sm text-white shadow" id="btn-upg-transport" onclick="buyUpgrade('transport')">
                         Upgrade: $25
                     </button>
                 </div>
 
                 <!-- Sawmill -->
-                <div class="panel p-4 flex flex-col justify-between">
+                <div class="panel p-3.5 flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-amber-500" data-i18n="u_saw_title">🏭 Sawmill Engine</h4>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded">Lv.<span id="lvl-sawmill">0</span></span>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <h4 class="font-bold text-amber-500 text-sm" data-i18n="u_saw_title">🏭 Sawmill Engine</h4>
+                            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-sawmill">0</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="u_saw_desc">Converts Raw Wood to Lumber (x2 Value).</p>
-                        <div class="text-sm mb-4 bg-black/30 p-2 rounded">
-                            <span data-i18n="speed">Speed:</span> <span id="eff-sawmill" class="text-white font-mono">0</span>/s <span class="text-emerald-500 text-xs ml-1">➔ <span id="next-eff-sawmill">1</span>/s</span>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_saw_desc">Converts Raw Wood to Lumber (x2 Value).</p>
+                        <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
+                            <span data-i18n="speed">Speed:</span> <span id="eff-sawmill" class="text-white font-mono font-bold">0</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-sawmill">1</span>/s</span>
                         </div>
                     </div>
-                    <button class="btn-upgrade bg-amber-700 hover:bg-amber-600 w-full py-3 rounded font-bold" id="btn-upg-sawmill" onclick="buyUpgrade('sawmill')">
+                    <button class="btn-upgrade bg-amber-700 hover:bg-amber-600 w-full rounded-lg font-bold text-sm text-white shadow" id="btn-upg-sawmill" onclick="buyUpgrade('sawmill')">
                         Upgrade: $50
                     </button>
                 </div>
                 
                 <!-- Drying Plant -->
-                <div class="panel p-4 flex flex-col justify-between opacity-50" id="card-drying">
+                <div class="panel p-3.5 flex flex-col justify-between opacity-50" id="card-drying">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-orange-500" data-i18n="u_dry_title">♨️ Drying Kilns</h4>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded">Lv.<span id="lvl-drying">0</span></span>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <h4 class="font-bold text-orange-500 text-sm" data-i18n="u_dry_title">♨️ Drying Kilns</h4>
+                            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-drying">0</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="u_dry_desc">Converts Lumber to Dry Lumber (x4 Value).</p>
-                        <div class="text-sm mb-4 bg-black/30 p-2 rounded">
-                            <span data-i18n="speed">Speed:</span> <span id="eff-drying" class="text-white font-mono">0</span>/s <span class="text-emerald-500 text-xs ml-1">➔ <span id="next-eff-drying">1</span>/s</span>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_dry_desc">Converts Lumber to Dry Lumber (x4 Value).</p>
+                        <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
+                            <span data-i18n="speed">Speed:</span> <span id="eff-drying" class="text-white font-mono font-bold">0</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-drying">1</span>/s</span>
                         </div>
                     </div>
-                    <button class="btn-upgrade bg-orange-700 hover:bg-orange-600 w-full py-3 rounded font-bold" id="btn-upg-drying" onclick="buyUpgrade('drying')" disabled>
+                    <button class="btn-upgrade bg-orange-700 hover:bg-orange-600 w-full rounded-lg font-bold text-sm text-white shadow" id="btn-upg-drying" onclick="buyUpgrade('drying')" disabled>
                         Requires Research
                     </button>
                 </div>
 
                 <!-- Furniture Factory -->
-                <div class="panel p-4 flex flex-col justify-between opacity-50" id="card-furniture">
+                <div class="panel p-3.5 flex flex-col justify-between opacity-50" id="card-furniture">
                     <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-yellow-600" data-i18n="u_furn_title">🪑 Assembly Line</h4>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded">Lv.<span id="lvl-furniture">0</span></span>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <h4 class="font-bold text-yellow-500 text-sm" data-i18n="u_furn_title">🪑 Assembly Line</h4>
+                            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full font-bold">Lv.<span id="lvl-furniture">0</span></span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4" data-i18n="u_furn_desc">Converts Dry Lumber to Furniture (x20 Value).</p>
-                        <div class="text-sm mb-4 bg-black/30 p-2 rounded">
-                            <span data-i18n="speed">Speed:</span> <span id="eff-furniture" class="text-white font-mono">0</span>/s <span class="text-emerald-500 text-xs ml-1">➔ <span id="next-eff-furniture">1</span>/s</span>
+                        <p class="text-xs text-slate-400 mb-2.5" data-i18n="u_furn_desc">Converts Dry Lumber to Furniture (x20 Value).</p>
+                        <div class="text-xs mb-3 bg-black/40 p-2 rounded-lg">
+                            <span data-i18n="speed">Speed:</span> <span id="eff-furniture" class="text-white font-mono font-bold">0</span>/s <span class="text-emerald-500 font-bold ml-1">➔ <span id="next-eff-furniture">1</span>/s</span>
                         </div>
                     </div>
-                    <button class="btn-upgrade bg-yellow-700 hover:bg-yellow-600 w-full py-3 rounded font-bold text-black" id="btn-upg-furniture" onclick="buyUpgrade('furniture')" disabled>
+                    <button class="btn-upgrade bg-yellow-600 hover:bg-yellow-500 w-full rounded-lg font-bold text-sm text-slate-900 shadow" id="btn-upg-furniture" onclick="buyUpgrade('furniture')" disabled>
                         Requires Research
                     </button>
                 </div>
             </div>
 
             <!-- RESEARCH TAB -->
-            <div id="tab-research" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="panel p-6 border-l-4 border-l-orange-500">
-                    <h3 class="text-lg font-bold text-orange-400 mb-2" data-i18n="r_dry_title">♨️ Advanced Wood Drying</h3>
-                    <p class="text-sm text-slate-400 mb-4" data-i18n="r_dry_desc">Unlock the Drying Plant. Process Lumber into high-value Dry Lumber.</p>
-                    <button class="btn-upgrade bg-orange-700 hover:bg-orange-600 px-6 py-3 rounded font-bold w-full md:w-auto" id="btn-res-drying" onclick="unlockFacility('drying')">
+            <div id="tab-research" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="panel p-4 border-l-4 border-l-orange-500 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-orange-400 mb-1.5" data-i18n="r_dry_title">♨️ Advanced Wood Drying</h3>
+                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_dry_desc">Unlock the Drying Plant. Process Lumber into high-value Dry Lumber.</p>
+                    </div>
+                    <button class="btn-upgrade bg-orange-700 hover:bg-orange-600 px-6 py-3 rounded-lg font-bold text-sm w-full text-white" id="btn-res-drying" onclick="unlockFacility('drying')">
                         Research for $1,000
                     </button>
                 </div>
                 
-                <div class="panel p-6 border-l-4 border-l-yellow-500">
-                    <h3 class="text-lg font-bold text-yellow-500 mb-2" data-i18n="r_furn_title">🪑 Furniture Manufacturing</h3>
-                    <p class="text-sm text-slate-400 mb-4" data-i18n="r_furn_desc">Unlock the Factory. Assemble Dry Lumber into Premium Furniture components.</p>
-                    <button class="btn-upgrade bg-slate-700 text-slate-400 px-6 py-3 rounded font-bold w-full md:w-auto cursor-not-allowed" id="btn-res-furniture" onclick="unlockFacility('furniture')" disabled>
+                <div class="panel p-4 border-l-4 border-l-yellow-500 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-yellow-500 mb-1.5" data-i18n="r_furn_title">🪑 Furniture Manufacturing</h3>
+                        <p class="text-xs text-slate-400 mb-4" data-i18n="r_furn_desc">Unlock the Factory. Assemble Dry Lumber into Premium Furniture components.</p>
+                    </div>
+                    <button class="btn-upgrade bg-slate-700 text-slate-400 px-6 py-3 rounded-lg font-bold text-sm w-full cursor-not-allowed" id="btn-res-furniture" onclick="unlockFacility('furniture')" disabled>
                         Research for $10,000
                     </button>
                 </div>
             </div>
 
             <!-- EXPORT TAB -->
-            <div id="tab-export" class="tab-content hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="panel p-4 text-center border-2 border-emerald-500">
-                    <div class="text-4xl mb-2">🇹🇭</div>
-                    <h4 class="font-bold text-slate-200" data-i18n="e_dom">Domestic Market</h4>
-                    <p class="text-xs text-emerald-400 my-2"><span data-i18n="e_mult">Multiplier:</span> x1.0</p>
-                    <button class="bg-emerald-600 w-full py-2 rounded text-xs font-bold mt-2 cursor-default" id="btn-exp-th">ACTIVE</button>
+            <div id="tab-export" class="tab-content hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="panel p-3.5 text-center border-2 border-emerald-500 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-1">🇹🇭</div>
+                        <h4 class="font-bold text-slate-200 text-sm" data-i18n="e_dom">Domestic Market</h4>
+                        <p class="text-xs text-emerald-400 my-1 font-semibold"><span data-i18n="e_mult">Multiplier:</span> x1.0</p>
+                    </div>
+                    <button class="btn-touch bg-emerald-600 w-full py-2.5 rounded-lg text-xs font-bold mt-2 cursor-default text-white" id="btn-exp-th">ACTIVE</button>
                 </div>
                 
-                <div class="panel p-4 text-center border border-slate-600">
-                    <div class="text-4xl mb-2 grayscale">🇯🇵</div>
-                    <h4 class="font-bold text-slate-400" data-i18n="e_jp">Japan Contract</h4>
-                    <p class="text-xs text-emerald-400 my-2"><span data-i18n="e_mult">Multiplier:</span> x1.5</p>
-                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2 rounded text-xs font-bold mt-2" id="btn-exp-jp" onclick="buyExport('JP')">Unlock: $5,000</button>
+                <div class="panel p-3.5 text-center border border-slate-600 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-1 grayscale">🇯🇵</div>
+                        <h4 class="font-bold text-slate-400 text-sm" data-i18n="e_jp">Japan Contract</h4>
+                        <p class="text-xs text-emerald-400 my-1 font-semibold"><span data-i18n="e_mult">Multiplier:</span> x1.5</p>
+                    </div>
+                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2.5 rounded-lg text-xs font-bold mt-2 text-white" id="btn-exp-jp" onclick="buyExport('JP')">Unlock: $5,000</button>
                 </div>
 
-                <div class="panel p-4 text-center border border-slate-600">
-                    <div class="text-4xl mb-2 grayscale">🇪🇺</div>
-                    <h4 class="font-bold text-slate-400" data-i18n="e_eu">Europe Export</h4>
-                    <p class="text-xs text-emerald-400 my-2"><span data-i18n="e_mult">Multiplier:</span> x2.0</p>
-                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2 rounded text-xs font-bold mt-2" id="btn-exp-eu" onclick="buyExport('EU')">Unlock: $25,000</button>
+                <div class="panel p-3.5 text-center border border-slate-600 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-1 grayscale">🇪🇺</div>
+                        <h4 class="font-bold text-slate-400 text-sm" data-i18n="e_eu">Europe Export</h4>
+                        <p class="text-xs text-emerald-400 my-1 font-semibold"><span data-i18n="e_mult">Multiplier:</span> x2.0</p>
+                    </div>
+                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2.5 rounded-lg text-xs font-bold mt-2 text-white" id="btn-exp-eu" onclick="buyExport('EU')">Unlock: $25,000</button>
                 </div>
 
-                <div class="panel p-4 text-center border border-slate-600">
-                    <div class="text-4xl mb-2 grayscale">🇺🇸</div>
-                    <h4 class="font-bold text-slate-400" data-i18n="e_us">USA Megacorp</h4>
-                    <p class="text-xs text-emerald-400 my-2"><span data-i18n="e_mult">Multiplier:</span> x2.2</p>
-                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2 rounded text-xs font-bold mt-2" id="btn-exp-us" onclick="buyExport('US')">Unlock: $100,000</button>
+                <div class="panel p-3.5 text-center border border-slate-600 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-1 grayscale">🇺🇸</div>
+                        <h4 class="font-bold text-slate-400 text-sm" data-i18n="e_us">USA Megacorp</h4>
+                        <p class="text-xs text-emerald-400 my-1 font-semibold"><span data-i18n="e_mult">Multiplier:</span> x2.2</p>
+                    </div>
+                    <button class="btn-upgrade bg-slate-700 hover:bg-slate-600 w-full py-2.5 rounded-lg text-xs font-bold mt-2 text-white" id="btn-exp-us" onclick="buyExport('US')">Unlock: $100,000</button>
                 </div>
             </div>
 
             <!-- MANAGERS TAB -->
-            <div id="tab-managers" class="tab-content hidden flex items-center justify-center h-full">
+            <div id="tab-managers" class="tab-content hidden flex items-center justify-center h-full p-6">
                 <div class="text-center text-slate-500">
-                    <div class="text-4xl mb-4">👔</div>
-                    <h3 class="text-lg font-bold" data-i18n="m_title">Manager System</h3>
-                    <p class="text-sm max-w-md mx-auto mt-2" data-i18n="m_desc">Hire professionals to boost efficiency.<br>(Coming in future expansion)</p>
+                    <div class="text-4xl mb-3">👔</div>
+                    <h3 class="text-base font-bold text-slate-300" data-i18n="m_title">Manager System</h3>
+                    <p class="text-xs max-w-md mx-auto mt-2 text-slate-400" data-i18n="m_desc">Hire professionals to boost efficiency.<br>(Coming in future expansion)</p>
                 </div>
             </div>
 
         </div>
     </footer>
 
-    <!-- Save Indicator Toast -->
-    <div id="save-toast" class="fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2 rounded shadow-lg text-xs font-bold opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-2">
+    <!-- Save Toast Notification -->
+    <div id="save-toast" class="fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs font-bold opacity-0 transition-opacity duration-300 pointer-events-none z-50 flex items-center gap-2">
         <span>💾</span> <span data-i18n="savedToast">Saved!</span>
     </div>
 
     <script>
+        // --- Promo Gift Codes Dictionary (10 x $5,000 Codes) ---
+        const VALID_GIFT_CODES = {
+            'LUMBER5K01': 5000,
+            'LUMBER5K02': 5000,
+            'LUMBER5K03': 5000,
+            'LUMBER5K04': 5000,
+            'LUMBER5K05': 5000,
+            'LUMBER5K06': 5000,
+            'LUMBER5K07': 5000,
+            'LUMBER5K08': 5000,
+            'LUMBER5K09': 5000,
+            'LUMBER5K10': 5000
+        };
+
         // --- Localization Dictionary ---
         const t = {
             TH: {
@@ -523,6 +715,18 @@
                 newGameBtn: "เริ่มเกมใหม่",
                 newGameConfirmTitle: "เริ่มเกมใหม่?",
                 newGameConfirmText: "ข้อมูลความคืบหน้าเดิมทั้งหมดจะถูกลบ คุณแน่ใจหรือไม่ที่จะเริ่มเกมใหม่?",
+                menuBtn: "เมนู",
+                menuSave: "บันทึกเกม",
+                menuRedeem: "ระบุโค้ดรางวัล",
+                menuReset: "ล้างข้อมูล",
+                redeemTitle: "ระบุโค้ดของรางวัล",
+                redeemDesc: "กรอกรหัสของรางวัลเพื่อรับเงินโบนัสพิเศษเข้าโรงงาน",
+                redeemConfirm: "รับรางวัล",
+                redeemSuccessTitle: "ยินดีด้วยคุณได้รับรางวัล!",
+                redeemSuccessMsg: "เงินสดจำนวน $5,000 ถูกโอนเข้าบัญชีโรงงานเรียบร้อยแล้ว",
+                redeemErrInvalid: "โค้ดไม่ถูกต้อง กรุณาตรวจสอบรหัสอีกครั้ง",
+                redeemErrUsed: "โค้ดนี้ถูกใช้งานไปแล้ว",
+                closeBtn: "ตกลง!",
                 region: "ภูมิภาค:",
                 rev: "รายได้ / วิ",
                 licenses: "ใบอนุญาต",
@@ -598,6 +802,18 @@
                 newGameBtn: "NEW GAME",
                 newGameConfirmTitle: "Start New Game?",
                 newGameConfirmText: "All saved progress will be erased. Are you sure you want to start a new game?",
+                menuBtn: "Menu",
+                menuSave: "Save Game",
+                menuRedeem: "Redeem Code",
+                menuReset: "Reset Progress",
+                redeemTitle: "Redeem Gift Code",
+                redeemDesc: "Enter your promo code below to claim rewards.",
+                redeemConfirm: "Claim Reward",
+                redeemSuccessTitle: "Congratulations!",
+                redeemSuccessMsg: "You received $5,000 cash reward!",
+                redeemErrInvalid: "Invalid gift code. Please check again.",
+                redeemErrUsed: "This code has already been redeemed.",
+                closeBtn: "Awesome!",
                 region: "Region:",
                 rev: "Revenue / Sec",
                 licenses: "Licenses",
@@ -671,23 +887,23 @@
         let isGameStarted = false;
         let pendingOfflineIncome = 0;
         let pendingOfflineSeconds = 0;
+        let lastTickTime = Date.now();
 
         const game = {
             version: 1,
             lastSaveTime: Date.now(),
             money: 0,
             premium: 0,
+            usedCodes: [],
             
-            // Current capabilities (units per second)
             stats: {
-                logging: 1,    // Produces raw wood
-                transport: 0,  // Moves wood to factory
-                sawmill: 0,    // Raw -> Lumber
-                drying: 0,     // Lumber -> Dry Lumber
-                furniture: 0   // Dry Lumber -> Furniture
+                logging: 1,
+                transport: 0,
+                sawmill: 0,
+                drying: 0,
+                furniture: 0
             },
             
-            // Base values of products
             prices: {
                 raw: 1,
                 lumber: 2,
@@ -695,7 +911,6 @@
                 furniture: 20
             },
             
-            // Upgrade configuration
             upgrades: {
                 logging:   { level: 1, base: 10, multi: 1.2, statStep: 1 },
                 transport: { level: 0, base: 25, multi: 1.3, statStep: 1 },
@@ -704,14 +919,12 @@
                 furniture: { level: 0, base: 1500, multi: 1.6, statStep: 0.25 }
             },
 
-            // Unlocks
             unlocks: {
                 drying: false,
                 furniture: false
             },
 
-            // Export Market
-            market: 'TH', // TH, JP, EU, US
+            market: 'TH',
             exportData: {
                 TH: { mult: 1.0, unlocked: true },
                 JP: { mult: 1.5, unlocked: false, cost: 5000 },
@@ -719,34 +932,87 @@
                 US: { mult: 2.2, unlocked: false, cost: 100000 }
             },
             
-            // Real-time tracking
-            lastIncome: 0
+            lastIncomeRate: 0
         };
 
-        // --- Save System (hardened) ---
-        const SAVE_KEY = 'timberCorpIdleSave';
-        let storageAvailable = false;
-
-        function checkStorageAvailability() {
-            try {
-                const testKey = '__timber_storage_test__';
-                localStorage.setItem(testKey, 'ok');
-                const ok = localStorage.getItem(testKey) === 'ok';
-                localStorage.removeItem(testKey);
-                storageAvailable = ok;
-            } catch (e) {
-                storageAvailable = false;
-                console.warn('Browser storage is unavailable in this context:', e);
-            }
-            return storageAvailable;
+        // --- Dropdown Menu Handlers ---
+        function toggleDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('settings-dropdown');
+            dropdown.classList.toggle('hidden');
         }
+
+        function closeDropdownIfOpen() {
+            const dropdown = document.getElementById('settings-dropdown');
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function triggerSaveFromMenu() {
+            closeDropdownIfOpen();
+            saveGame(false);
+        }
+
+        function triggerResetFromMenu() {
+            closeDropdownIfOpen();
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function openRedeemModal() {
+            closeDropdownIfOpen();
+            document.getElementById('code-input').value = '';
+            document.getElementById('code-error').classList.add('hidden');
+            document.getElementById('redeem-modal').classList.remove('hidden');
+        }
+
+        function closeRedeemModal() {
+            document.getElementById('redeem-modal').classList.add('hidden');
+        }
+
+        function submitGiftCode() {
+            const inputEl = document.getElementById('code-input');
+            const errorEl = document.getElementById('code-error');
+            const code = inputEl.value.trim().toUpperCase();
+
+            if (!code) return;
+
+            if (!VALID_GIFT_CODES[code]) {
+                errorEl.innerText = t[currentLang].redeemErrInvalid;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (game.usedCodes && game.usedCodes.includes(code)) {
+                errorEl.innerText = t[currentLang].redeemErrUsed;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Grant reward
+            const rewardAmount = VALID_GIFT_CODES[code];
+            game.money += rewardAmount;
+            if (!game.usedCodes) game.usedCodes = [];
+            game.usedCodes.push(code);
+
+            updateUI();
+            saveGame(true);
+
+            closeRedeemModal();
+
+            // Show Congratulations Pop-up
+            document.getElementById('reward-message').innerHTML = `${t[currentLang].redeemSuccessMsg} <br><strong class="text-emerald-400 font-mono text-base">+$${rewardAmount.toLocaleString()} Cash</strong>`;
+            document.getElementById('reward-modal').classList.remove('hidden');
+        }
+
+        // --- Save System ---
+        const SAVE_KEY = 'timberCorpIdleSave';
 
         function readSaveString() {
             try {
                 return localStorage.getItem(SAVE_KEY);
             } catch (e) {
-                storageAvailable = false;
-                console.error('Cannot read save data. Browser storage may be blocked.', e);
+                console.error('Cannot read save data from storage.', e);
                 return null;
             }
         }
@@ -763,10 +1029,7 @@
             };
 
             try {
-                // Check actual write access; this can fail in private or sandboxed contexts.
                 localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-                storageAvailable = true;
-
                 const toast = document.getElementById('save-toast');
                 if (toast && !isAuto) {
                     toast.classList.remove('opacity-0');
@@ -775,11 +1038,7 @@
                 return true;
             } catch (e) {
                 game.lastSaveTime = previousSaveTime;
-                storageAvailable = false;
-                console.error('Failed to save game. Browser storage is blocked or full.', e);
-                if (!isAuto) {
-                    alert('บันทึกเกมไม่สำเร็จ: เบราว์เซอร์อาจบล็อกพื้นที่จัดเก็บข้อมูล กรุณาเปิดเกมผ่าน localhost หรือ HTTPS แล้วลองอีกครั้ง');
-                }
+                console.error('Failed to save game.', e);
                 return false;
             }
         }
@@ -797,6 +1056,7 @@
                 const saved = saveData.game;
                 if (Number.isFinite(saved.money)) game.money = Math.max(0, saved.money);
                 if (Number.isFinite(saved.premium)) game.premium = Math.max(0, saved.premium);
+                if (Array.isArray(saved.usedCodes)) game.usedCodes = saved.usedCodes;
                 if (['TH', 'JP', 'EU', 'US'].includes(saved.market)) game.market = saved.market;
                 if (Number.isFinite(saved.lastSaveTime)) game.lastSaveTime = saved.lastSaveTime;
 
@@ -808,9 +1068,8 @@
                 if (saved.upgrades && typeof saved.upgrades === 'object') {
                     Object.keys(game.upgrades).forEach(k => {
                         const old = saved.upgrades[k];
-                        if (old && typeof old === 'object') {
-                            if (Number.isFinite(old.level)) game.upgrades[k].level = Math.max(0, old.level);
-                            // Keep current game configuration (base/multi/statStep) and restore level only.
+                        if (old && typeof old === 'object' && Number.isFinite(old.level)) {
+                            game.upgrades[k].level = Math.max(0, old.level);
                         }
                     });
                 }
@@ -839,65 +1098,25 @@
                 if (game.unlocks.furniture) unlockFacilityVisuals('furniture');
                 setMarket(game.market);
 
-                // Calculate offline progress without changing balance until player collects it.
                 const now = Date.now();
                 const offlineMillis = Math.max(0, now - game.lastSaveTime);
                 if (offlineMillis > 60000) {
                     calculateOfflineProgress(Math.floor(offlineMillis / 1000));
                 }
 
-                // Move the timestamp forward and persist it to prevent counting the same offline time twice.
                 game.lastSaveTime = now;
-                // Persist the updated timestamp and any pending offline reward to avoid duplicate calculation.
                 saveGame(true);
                 return true;
             } catch (e) {
-                console.error('Save data is invalid; preserving the stored data for recovery.', e);
-                alert('อ่านข้อมูลเซฟไม่สำเร็จ ข้อมูลเดิมจะไม่ถูกลบ กรุณาสำรองไฟล์เซฟก่อนเริ่มเกมใหม่');
+                console.error('Save data is invalid.', e);
                 return false;
             }
         }
 
-        function exportSave() {
-            const saveStr = readSaveString();
-            if (!saveStr) {
-                alert('ไม่พบเซฟในพื้นที่จัดเก็บของเบราว์เซอร์');
-                return;
-            }
-            const blob = new Blob([saveStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'timber-corp-save.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function importSaveFile(input) {
-            const file = input.files && input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                try {
-                    const data = JSON.parse(String(reader.result));
-                    if (!data || !data.game || typeof data.game !== 'object') throw new Error('Invalid save');
-                    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-                    alert('นำเข้าเซฟสำเร็จ เกมจะรีโหลดเพื่อโหลดข้อมูล');
-                    location.reload();
-                } catch (e) {
-                    alert('ไฟล์เซฟไม่ถูกต้อง หรือเบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล');
-                    console.error(e);
-                }
-                input.value = '';
-            };
-            reader.readAsText(file);
-        }
-
         function calculateOfflineProgress(seconds) {
-            // Cap at 8 hours (28800 seconds)
             const maxOfflineSeconds = 8 * 60 * 60;
             const actualSeconds = Math.min(Math.max(0, seconds), maxOfflineSeconds);
-            const efficiency = 0.5; // 50% offline efficiency
+            const efficiency = 0.5;
             const prod = calculateProduction(actualSeconds, efficiency, false);
 
             if (prod.income > 0) {
@@ -927,12 +1146,7 @@
         }
 
         function confirmReset() {
-            try {
-                localStorage.removeItem(SAVE_KEY);
-            } catch (e) {
-                alert('ลบเซฟไม่ได้ เนื่องจากเบราว์เซอร์บล็อกพื้นที่จัดเก็บข้อมูล');
-                return;
-            }
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
             location.reload();
         }
 
@@ -941,7 +1155,6 @@
         }
 
         function initStartScreen() {
-            checkStorageAvailability();
             const saveStr = readSaveString();
             if (saveStr) {
                 try {
@@ -961,18 +1174,18 @@
             
             if (hasSaveData()) {
                 btnContainer.innerHTML = `
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-                        <button onclick="continueGame()" class="w-full sm:w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center w-full">
+                        <button onclick="continueGame()" class="btn-touch w-full sm:w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-lg text-base shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all flex items-center justify-center gap-2">
                             <span>▶️</span> <span data-i18n="continueBtn">${t[currentLang].continueBtn}</span>
                         </button>
-                        <button onclick="startNewGamePrompt()" class="w-full sm:w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-4 px-6 rounded-lg text-lg border border-slate-500 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                        <button onclick="startNewGamePrompt()" class="btn-touch w-full sm:w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3.5 px-6 rounded-lg text-base border border-slate-500 transition-all flex items-center justify-center gap-2">
                             <span>🔄</span> <span data-i18n="newGameBtn">${t[currentLang].newGameBtn}</span>
                         </button>
                     </div>
                 `;
             } else {
                 btnContainer.innerHTML = `
-                    <button onclick="startGameFirst()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all transform hover:scale-105" data-i18n="startBtn">
+                    <button onclick="startGameFirst()" class="btn-touch w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg text-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all" data-i18n="startBtn">
                         ${t[currentLang].startBtn}
                     </button>
                 `;
@@ -990,11 +1203,11 @@
 
         function confirmNewGame() {
             document.getElementById('new-game-modal').classList.add('hidden');
-            localStorage.removeItem('timberCorpIdleSave');
+            try { localStorage.removeItem(SAVE_KEY); } catch(e){}
             
-            // Reset state
             game.money = 0;
             game.premium = 0;
+            game.usedCodes = [];
             game.market = 'TH';
             game.stats = { logging: 1, transport: 0, sawmill: 0, drying: 0, furniture: 0 };
             game.upgrades = {
@@ -1011,11 +1224,10 @@
                 EU: { mult: 2.0, unlocked: false, cost: 25000 },
                 US: { mult: 2.2, unlocked: false, cost: 100000 }
             };
-            game.lastIncome = 0;
+            game.lastIncomeRate = 0;
             pendingOfflineIncome = 0;
             pendingOfflineSeconds = 0;
 
-            // Reset visual locks
             document.getElementById('bldg-drying').classList.add('locked-building');
             document.getElementById('card-drying').classList.add('opacity-50');
             document.getElementById('btn-upg-drying').disabled = true;
@@ -1034,18 +1246,18 @@
             startGame();
         }
 
-        // --- Start & Localization System ---
         function startGame() {
             document.getElementById('start-screen').style.display = 'none';
             isGameStarted = true;
+            lastTickTime = Date.now();
             
-            // Show Offline Earnings Modal if there are pending offline earnings
             if (pendingOfflineIncome > 0) {
                 document.getElementById('offline-time').innerText = formatTime(pendingOfflineSeconds);
                 document.getElementById('offline-earned').innerText = `+${formatMoney(pendingOfflineIncome)}`;
                 document.getElementById('offline-modal').classList.remove('hidden');
-                pendingOfflineIncome = 0; // Clear it after showing
             }
+
+            requestAnimationFrame(gameLoop);
         }
 
         function toggleLang() {
@@ -1061,19 +1273,30 @@
                     el.innerHTML = t[currentLang][key];
                 }
             });
-            setMarket(game.market); // To re-translate market label
+            setMarket(game.market);
             updateStartScreenButtons();
-            updateUI(); // Translates dynamic button texts
+            updateUI();
         }
 
-        // --- Core Game Loop ---
-        setInterval(() => {
-            if (!isGameStarted) return;
-            gameLoopTick();
-            updateUI();
-        }, 1000);
+        // --- Delta-Time Game Loop ---
+        let cashEffectTimer = 0;
 
-        // Auto-save every 5 seconds
+        function gameLoop() {
+            if (!isGameStarted) return;
+
+            const now = Date.now();
+            let dt = (now - lastTickTime) / 1000;
+            lastTickTime = now;
+
+            if (dt < 0) dt = 0;
+            if (dt > 10) dt = 10;
+
+            gameLoopTick(dt);
+            updateUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+
         setInterval(() => {
             if (isGameStarted) saveGame(true);
         }, 5000);
@@ -1114,7 +1337,12 @@
             income += sellDry * game.prices.dry * m;
             income += sellFurniture * game.prices.furniture * m;
 
-            if (applyIncome) game.money += income;
+            if (applyIncome) {
+                game.money += income;
+                if (seconds > 0) {
+                    game.lastIncomeRate = income / seconds;
+                }
+            }
 
             return { 
                 income, sellRaw, sellLumber, sellDry, sellFurniture, 
@@ -1122,38 +1350,22 @@
             };
         }
 
-        function gameLoopTick() {
-            // Process 1 second at 100% efficiency
-            const prod = calculateProduction(1, 1.0);
-            game.lastIncome = prod.income;
+        function gameLoopTick(dt) {
+            const prod = calculateProduction(dt, 1.0, true);
 
-            // Visual Animations Updates
-            document.getElementById('bldg-forest').classList.toggle('anim-active', prod.rawAvailable > 0);
-            document.getElementById('bldg-logging').classList.toggle('anim-active', prod.rawAvailable > 0);
-            document.getElementById('bldg-transport').classList.toggle('anim-active', prod.transported > 0);
-            document.getElementById('bldg-sawmill').classList.toggle('anim-active', prod.processedLumber > 0);
-            
-            if (game.unlocks.drying) {
-                document.getElementById('bldg-drying').classList.toggle('anim-active', prod.processedDry > 0);
-            }
-            if (game.unlocks.furniture) {
-                document.getElementById('bldg-furniture').classList.toggle('anim-active', prod.processedFurniture > 0);
-            }
+            const perSecFactor = dt > 0 ? (1 / dt) : 1;
+            document.getElementById('stat-raw').innerText = `${(prod.sellRaw * perSecFactor).toFixed(1)}/s`;
+            document.getElementById('stat-lumber').innerText = `${(prod.sellLumber * perSecFactor).toFixed(1)}/s`;
+            document.getElementById('stat-dry').innerText = `${(prod.sellDry * perSecFactor).toFixed(1)}/s`;
+            document.getElementById('stat-furniture').innerText = `${(prod.sellFurniture * perSecFactor).toFixed(1)}/s`;
 
-            // Display per second rates
-            document.getElementById('stat-raw').innerText = `${prod.sellRaw.toFixed(1)}/s`;
-            document.getElementById('stat-lumber').innerText = `${prod.sellLumber.toFixed(1)}/s`;
-            document.getElementById('stat-dry').innerText = `${prod.sellDry.toFixed(1)}/s`;
-            document.getElementById('stat-furniture').innerText = `${prod.sellFurniture.toFixed(1)}/s`;
-
-            if (prod.income > 0) {
-                document.getElementById('bldg-dock').classList.add('anim-active');
-                spawnFloatingCash(prod.income);
-                setTimeout(() => document.getElementById('bldg-dock').classList.remove('anim-active'), 500);
+            cashEffectTimer += dt;
+            if (cashEffectTimer >= 1.5 && game.lastIncomeRate > 0) {
+                cashEffectTimer = 0;
+                spawnFloatingCash(game.lastIncomeRate * 1.5);
             }
         }
 
-        // --- Math & Formulas ---
         function getCost(key) {
             const u = game.upgrades[key];
             return Math.floor(u.base * Math.pow(u.multi, u.level));
@@ -1165,7 +1377,6 @@
             return '$' + Math.floor(amount).toLocaleString();
         }
 
-        // --- Interaction Logic ---
         function buyUpgrade(key) {
             const cost = getCost(key);
             if (game.money >= cost) {
@@ -1173,7 +1384,7 @@
                 game.upgrades[key].level++;
                 game.stats[key] += game.upgrades[key].statStep;
                 updateUI();
-                saveGame(); // Instant save
+                saveGame();
             }
         }
 
@@ -1193,10 +1404,10 @@
                 const furnBtn = document.getElementById('btn-res-furniture');
                 if(furnBtn) {
                     furnBtn.disabled = false;
-                    furnBtn.classList.replace('bg-slate-700', 'bg-yellow-700');
-                    furnBtn.classList.replace('text-slate-400', 'text-white');
+                    furnBtn.classList.replace('bg-slate-700', 'bg-yellow-600');
+                    furnBtn.classList.replace('text-slate-400', 'text-slate-900');
                     furnBtn.classList.remove('cursor-not-allowed');
-                    furnBtn.classList.add('hover:bg-yellow-600');
+                    furnBtn.classList.add('hover:bg-yellow-500');
                 }
             }
         }
@@ -1208,7 +1419,7 @@
                 game.unlocks[key] = true;
                 unlockFacilityVisuals(key);
                 updateUI();
-                saveGame(); // Instant save
+                saveGame();
             }
         }
 
@@ -1219,7 +1430,7 @@
                 data.unlocked = true;
                 setMarket(key);
                 updateUI();
-                saveGame(); // Instant save
+                saveGame();
             } else if (data.unlocked) {
                 setMarket(key);
             }
@@ -1256,13 +1467,12 @@
             }
         }
 
-        // --- UI Updates ---
         function updateUI() {
             const lang = t[currentLang];
             
             document.getElementById('display-money').innerText = formatMoney(game.money);
             document.getElementById('display-premium').innerText = game.premium;
-            document.getElementById('display-income-rate').innerText = `+${formatMoney(game.lastIncome)}`;
+            document.getElementById('display-income-rate').innerText = `+${formatMoney(game.lastIncomeRate)}`;
 
             ['logging', 'transport', 'sawmill', 'drying', 'furniture'].forEach(k => {
                 const u = game.upgrades[k];
@@ -1310,9 +1520,9 @@
             });
         }
 
-        // --- Visual Effects ---
         function spawnFloatingCash(amount) {
             const dock = document.getElementById('bldg-dock');
+            if (!dock) return;
             const el = document.createElement('div');
             el.className = 'float-cash';
             el.innerText = `+$${Math.floor(amount)}`;
@@ -1320,15 +1530,13 @@
             setTimeout(() => el.remove(), 1000);
         }
 
-        // --- Tab Navigation ---
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'text-sky-400'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             btnElement.classList.add('active');
         }
 
-        // Initialize UI and Language on load
         initStartScreen();
     </script>
 </body>
